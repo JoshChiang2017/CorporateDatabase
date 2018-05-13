@@ -24,6 +24,7 @@ Create several company database with dummy data to simulate.
 import os
 from CD_LinkingList import *
 from PIL import Image
+import random
 
 print ('--------- Tool_CreateDummyDatabase.py  Start ---------')
 
@@ -126,10 +127,11 @@ file.close()
 #
 for Index in range (101):
     PicName = 'ProductB' + str(Index)
-    
+
+    Color = (random.randint (0, 255), random.randint (0, 255), 150)
     for i in range(img.size[0]):
         for j in range(img.size[1]):
-            pixels[i,j] = (Index * 2, Index * 2, 150)
+            pixels[i,j] = Color
     img.save(DataBaseName + '/' + Company + '/' + PicName + '.png')
     
     img_simple = img.resize ((200, 200))
@@ -169,10 +171,11 @@ file.close()
 #
 for Index in range (50):
     PicName = 'ProductA' + str(Index)
-    
+
+    Color = (150, random.randint (0, 255), random.randint (0, 255))
     for i in range(img.size[0]):
         for j in range(img.size[1]):
-            pixels[i,j] = (Index * 5, 100, Index * 5)
+            pixels[i,j] = Color
     img.save(DataBaseName + '/' + Company + '/' + PicName + '.png')
     
     img_simple = img.resize ((200, 200))
@@ -212,10 +215,11 @@ file.close()
 #
 for Index in range (39, 49, 2):
     PicName = 'ProductA' + str(Index)
-    
+
+    Color = (random.randint (0, 255), 150, random.randint (0, 255))
     for i in range(img.size[0]):
         for j in range(img.size[1]):
-            pixels[i,j] = (100, Index * 5, Index * 5)
+            pixels[i,j] = Color
     img.save(DataBaseName + '/' + Company + '/' + PicName + '.png')
     
     img_simple = img.resize ((200, 200))
