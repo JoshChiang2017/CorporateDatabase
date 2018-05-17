@@ -226,6 +226,6 @@ if __name__ == '__main__':
     a.tree.focus_set() # set focus to treeview
     a.tree.focus(a.tree.get_children()[0]) #set focus to item
             
-    root.mainloop
+    root.mainloop ()
     
  
