@@ -50,6 +50,12 @@ class ProductList (object):
         self.Header = ProductNode()
         self.TotalNodeNumber = 0
 
+        #
+        # Flag indicate whether data in the list has been modified.
+        # Poroduct has been added/modified/removed in this company.
+        #
+        self.ProductModify = False
+
     def IsEmpty (self):
         return self.Header.Name.NextNode == None
     
@@ -163,12 +169,24 @@ class CompanyList (object):
     def __init__(self):
         self.Header = CompanyNode ()
         self.TotalNodeNumber = 0
+        
+        #
+        # Flag indicate whether data in the list has been modified.
+        # Company has been added/modified/removed in this database.
+        #
+        self.CompanyModify = False
 
     def IsEmpty (self):
         return self.Header.CompanyName.NextNode == None
     
     def GetHeader(self):
         return self.Header
+
+    def CompanyHasBeenModified (self):
+        self.CompanyModify = False
+
+    def ProductHasBeenModified (self, Comapny):
+        self.FindCompany (Company).ProductModify
     
     def NewCompanyNode(self, Name = 'NULL', Code = 'NULL'):
         assert isinstance(Name, str)
@@ -212,7 +230,27 @@ class CompanyList (object):
         PreNode.Code.SetNextNode (NewNode)
 
     #
-    # Find specific ProductNode by product name.
+    # If company code exist return company name, else return None
+    #
+    def IsCompanyCodeExist (self, CompanyCode):
+        assert isinstance(CompanyCode, str)
+        
+        CurrentCompany = self.Header.Code.GetNextNode()
+        
+        while CurrentCompany != None:
+            if CurrentCompany.Code.GetData() > CompanyCode:
+                #
+                # No fit
+                #
+                return None
+            
+            elif CurrentCompany.Code.GetData() == CompanyCode:
+                return CurrentCompany.Name.GetData()
+            else:
+                CurrentCompany = CurrentCompany.Code.GetNextNode()
+        
+    #
+    # Find specific CompanyNode by company name.
     #
     def FindCompany (self, CompanyName):
         assert isinstance(CompanyName, str)
@@ -227,28 +265,31 @@ class CompanyList (object):
                 return None
             
             elif CurrentCompany.Name.GetData() == CompanyName:
-                return CurrentCompany
+                return CurrentCompany.ProductListHeader
             else:
                 CurrentCompany = CurrentCompany.Name.GetNextNode()
     
+    #
+    # Find specific ProductNode by product name.
+    #
     def FindProduct (self, CompanyName, ProductName):
         assert isinstance(CompanyName, str)
         assert isinstance(ProductName, str)
         
         CurrentCompany = self.FindCompany (CompanyName)
-        CurrentProducr = CurrentCompany.ProductListHeader.Header.Name.GetNextNode ()
+        CurrentProduct = CurrentCompany.Header.Name.GetNextNode ()
 
-        while CurrentProducr != None:
-            if CurrentProducr.Name.GetData() > ProductName:
+        while CurrentProduct != None:
+            if CurrentProduct.Name.GetData() > ProductName:
                 #
                 # No fit
                 #
                 return None
             
-            elif CurrentProducr.Name.GetData() == ProductName:
-                return CurrentProducr
+            elif CurrentProduct.Name.GetData() == ProductName:
+                return CurrentProduct
             else:
-                CurrentProducr = CurrentProducr.Name.GetNextNode()
+                CurrentProduct = CurrentProduct.Name.GetNextNode()
 
     def Print (self):
         CurrentNode = self.Header.Name.GetNextNode()

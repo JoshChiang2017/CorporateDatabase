@@ -45,9 +45,9 @@ class EntryMenu (tk.Frame):
         #
         # Button
         #
-        self.ButtonNew = tk.Button (
+        self.ButtonModify = tk.Button (
             self.FrameMainBottom,
-            text = '新增',
+            text = '修改',
             font = ('標楷體', 14),
             bg = '#6899CA'
             )
@@ -67,7 +67,7 @@ class EntryMenu (tk.Frame):
             command=lambda: Parent.destroy ()
             )
 
-        self.ButtonNew.grid (row=0, column=0, sticky='news', padx=1, pady=1)
+        self.ButtonModify.grid (row=0, column=0, sticky='news', padx=1, pady=1)
         self.ButtonSearch.grid (row=0, column=1, sticky='news', padx=1, pady=1)
         self.ButtonExit.grid (row=0, column=2, sticky='news', padx=1, pady=1)
         self.update()

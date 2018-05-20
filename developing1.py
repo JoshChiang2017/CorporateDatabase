@@ -62,7 +62,9 @@ class GuiAddToDatabase (tk.Frame):
             relief=tk.SUNKEN,
             bg = '#D8E5f3'
             )
-        self.ObserveRegion = GuiAddToDatabaseInternal (self)
+        
+        Title = ('Name', 'Code', 'Price')
+        self.ObserveRegion = GuiAddToDatabaseInternal (self, 3, Ttile)
             
         self.OperationRegion.grid(row=0, column=0, sticky='news', padx=1, pady=5)
         self.ObserveRegion.grid(row=1, column=0, sticky='news', padx=1, pady=5)

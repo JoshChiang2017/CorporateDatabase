@@ -45,23 +45,26 @@ pixels = img.load() # create the pixel map
 # Initialize total company list
 #
 file = open (DataBaseName + '/' + 'TotalCompanyList.txt', 'w')
-
-file.write ('%1s' % '' + '| ' + '%-20s' % 'CompanyName' +'|\n')
+file.write ('%1s' % '' + '| ' + '%-20s' % 'CompanyName' + '| ' + '%-20s' % 'CompanyCode' +'|\n')
 for i in range (50):
     file.write ('=')
 file.write ('\n')
 
 file.write ('%1s' % '@' + '| ')
 file.write ('%-20s' % 'MaryCompany' + '| ')
+file.write ('%-20s' % 'Mary' + '| ')
 file.write ('\n')
 file.write ('%1s' % '@' + '| ')
 file.write ('%-20s' % 'MelodyCompany' + '| ')
+file.write ('%-20s' % 'Melody' + '| ')
 file.write ('\n')
 file.write ('%1s' % '@' + '| ')
 file.write ('%-20s' % 'ZoeCompany' + '| ')
+file.write ('%-20s' % 'Zoe' + '| ')
 file.write ('\n')
 file.write ('%1s' % '@' + '| ')
 file.write ('%-20s' % 'JannyCompany' + '| ')
+file.write ('%-20s' % 'Janny' + '| ')
 file.write ('\n')
 
 file.close()

@@ -5,6 +5,7 @@ from PIL import Image,ImageTk
 from tkinter import messagebox
 
 import CD_GuiDataDisplayTable
+import CD_GuiDataModifyTable
 import CD_GuiEntryMenu
 import CD_LinkingList
 
@@ -131,10 +132,14 @@ def LoadDatabase():
     
     return CompanyList1
 
+def SwitchToModify (root, Database):
+    menu = CD_GuiDataModifyTable.GuiAddToDatabase (root, Database)
+    menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+    menu.tkraise ()
 def SwitchToSearch (root, Database):
-    MenuSearch = CD_GuiDataDisplayTable.DataDisplayMenu (root, Database)
-    MenuSearch.grid (row=0, column=0, sticky='news', padx=5, pady=5)
-    MenuSearch.tkraise ()
+    menu = CD_GuiDataDisplayTable.DataDisplayMenu (root, Database)
+    menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+    menu.tkraise ()
     
 #
 # Run main
@@ -180,7 +185,8 @@ if __name__ == '__main__':
     #
     # Menu switch related callback.
     #
-    MenuMain.ButtonSearch .config (command = lambda: SwitchToSearch (root, Database))
+    MenuMain.ButtonModify.config (command = lambda: SwitchToModify (root, Database))
+    MenuMain.ButtonSearch.config (command = lambda: SwitchToSearch (root, Database))
     
     root.mainloop()
 
