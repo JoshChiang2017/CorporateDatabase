@@ -1,12 +1,32 @@
 import tkinter as tk
 import CorporateDatabaseMain
+import logging
+import tkinter.filedialog as Dialog
+from tkinter import messagebox
 
+class PopupMenu(tk.Frame):
+    def __init__(self, Parent):
+        tk.Frame.__init__(self, Parent, bg = '#123456')
+        self.listBox = tk.Listbox(self, height=1)
+        self.button = tk.Button(self, text='v', command=self.Triggle)
+        self.HideList = True
+        
+        for i in range(10):
+            self.listBox.insert(i, 'Item%d'%i)
+            
+        self.listBox.grid(row=1, column=1, sticky='news')
+        self.button.grid(row=1, column=2, sticky='news')
+        
+    def Triggle(self):
+        self.HideList ^= 1
+        self.listBox.config (height=[self.listBox.size(), 1][self.HideList])
+        
 #
 # @Title                     List of string display on each top of column.
-# @AdvanceEntryCallback      Advance entry callback.
+# @ShowIndex                 Display row index.
 #
 class Table (tk.Frame):
-    def __init__(self, Parent, Title, AdvanceEntryCallback = None):
+    def __init__(self, Parent, Title, ShowRowIndex = False):
         
         tk.Frame.__init__(self, Parent, 
             borderwidth = 3,
@@ -16,26 +36,35 @@ class Table (tk.Frame):
         #
         # Manage group of one row entry by Frame.
         # Collect all entry object into the array 'EntryArray'.
-        # Collect all frame object into the array 'EntryRowArrray'.
         #
         # EntryArray start from [0][0] to [MaY][MaxX]
-        # EntryRowArrray start from [0] to [MaxY]
-        # Current input cursor will focus at [Y][X]
+        #   In each cell
+        #       [0] : object of entry
+        #       [1] : record entry status
+        #           If self.AddNewRow(None), status is 'new'.
+        #           If self.AddNewRow(Data), status is 'exist'.
+        #           The other two status is 'modify' and 'remove'.
+        #       [2] : This space is used to save default entry text.
+        #           It's usually used by status 'exist' of entry.
+        #           Used to check whether the entry has been modified.
         #
+        #   EX:
+        #       Object of (1,2) : [2][1][self.DefineObject]
+        #       Status of (1,2) : [2][1][self.DefineStatus]
+        #
+        
+        self.DefineObject      = 0
+        self.DefineStatus      = 1
+        self.DefineDefaultText = 2
+        
         self.EntryArray = []
-        self.EntryRowArrray = []
         self.X = 0
         self.Y = 0
         self.MaxX = -1 + len (Title)
         self.MaxY = -1
         self.ColumnNumber = len (Title)
 
-        #
-        # AdvanceEntryCallback allow parent provide advance callback of keyboard enter key.
-        # Default is none.
-        # Parent declare like Table.AdvanceEntryCallback = FunctionName
-        #
-        self.AdvanceEntryCallback = None
+        self.ShowRowIndex = ShowRowIndex
         
         #
         # In this frame, contain two sub frame and scrollbar.
@@ -56,13 +85,23 @@ class Table (tk.Frame):
             command = self.DataCanvas.yview
             )
         
-        self.TitleFrame.grid(row=0, column=0, sticky='news')
+        self.TitleFrame.grid(row=0, column=0, sticky='news', padx=1)
         self.DataCanvas.grid(row=1, column=0, sticky='news')
         self.Scrollbar.grid(row=0, column=1, rowspan = 2, sticky='news')
         
         #
         # Initialize title of table.
         #
+        if self.ShowRowIndex == True:
+            entry = tk.Label (
+                self.TitleFrame,
+                borderwidth = 1,
+                relief=tk.GROOVE,
+                text = 'NO.',
+                width = 5
+                )
+            entry.pack(side='left', fill='both')
+            
         for Index in range(self.ColumnNumber):
             TitleString = tk.StringVar()
             TitleString.set(Title[Index])
@@ -72,7 +111,8 @@ class Table (tk.Frame):
                 relief=tk.GROOVE,
                 state = 'disabled',
                 justify = 'center',
-                textvariable = TitleString
+                textvariable = TitleString,
+                disabledforeground = '#000000'
                 )
             entry.pack(side='left', fill='both', expand=True)
         
@@ -87,28 +127,25 @@ class Table (tk.Frame):
         #
         # Callback event.
         #
-        self.DataCanvas.bind ('<Configure>', self.CanvasResize)
-        self.DataCanvas.bind ('<MouseWheel>', self.MouseWheelCallback)
-        self.FrameInDataCanvas.bind ('<Configure>', self.ScrollbarCallback)
+        self.DataCanvas.bind ('<Configure>', lambda event: self.DataCanvas.itemconfig (self.WindowInCanvas, width = event.width))
+        self.FrameInDataCanvas.bind ('<Configure>', lambda event: self.DataCanvas.configure(scrollregion=self.DataCanvas.bbox("all")))
+        
+        self.bind_all ('<MouseWheel>', lambda event: self.DataCanvas.yview_scroll(-1 * (event.delta//30), "units"))
+        self.bind_all("<Next>",  lambda event: self.DataCanvas.yview_scroll(1, "pages"))
+        self.bind_all("<Prior>",  lambda event: self.DataCanvas.yview_scroll(-1, "pages"))
+            
+        self.bind_all ('<Tab>', self.NextEntryCallback)
+        self.bind_all ('<Down>', self.NextEntryCallback)
+        self.bind_all ('<Shift-Tab>', self.PreEntryCallback)
+        self.bind_all ('<Up>', self.PreEntryCallback)
 
         #
         # Initialize one row assume that no data exist.
         #
         #self.AddNewRow()
-        #self.EntryArray[self.Y][self.X].focus_set()
-        #self.EntryArray[self.Y][self.X].select_range(0, 'end')
+        #self.EntryArray[self.Y][self.X][self.DefineObject].focus_set()
+        #self.EntryArray[self.Y][self.X][self.DefineObject].select_range(0, 'end')
         
-    #
-    # Use to make frame in the canvas can be resized with canvas.
-    #
-    def CanvasResize (self, event):
-        self.DataCanvas.itemconfig (self.WindowInCanvas, width = event.width)
-
-    #
-    # Control canvaas with scrollbar.
-    #
-    def ScrollbarCallback (self, event):
-        self.DataCanvas.configure(scrollregion=self.DataCanvas.bbox("all"))
 
     def AddNewRow (self, Data=None):
         #
@@ -118,13 +155,39 @@ class Table (tk.Frame):
             Data = []
             for Index in range(self.ColumnNumber):
                 Data.append('N/A')
+            Status = 'new'
+            Background = '#FFFFFF'
+            
         else:
             assert isinstance (Data, list)
             assert len (Data) == self.ColumnNumber
+            Status = 'exist'
+            Background = '#DDFFDD'
+        
+        self.MaxY += 1
         
         ItemX = []
         frame = tk.Frame (self.FrameInDataCanvas)
         frame.pack(side='top', fill='x', expand=True, padx=1)
+
+        #
+        # Display row index
+        #
+        if self.ShowRowIndex == True:
+            TitleString = tk.StringVar()
+            TitleString.set (self.MaxY)
+            entry = tk.Entry (
+                frame,
+                borderwidth = 1,
+                relief=tk.GROOVE,
+                state = 'disabled',
+                justify = 'center',
+                textvariable = TitleString,
+                disabledforeground = '#000000',
+                width = 5
+                )
+            entry.pack(side='left', fill='x')
+            entry.bind ('<Button-1>', self.ExistToRemove)
         
         for Index in range(self.ColumnNumber):
             TitleString = tk.StringVar()
@@ -133,71 +196,68 @@ class Table (tk.Frame):
                 frame,
                 borderwidth = 1,
                 relief=tk.GROOVE,
-                textvariable = TitleString
+                textvariable = TitleString,
+                bg = Background
                 )
+            entry.pack(side='left', fill='x', expand=True)
+            
+            ItemX.append ([entry, Status, Data[Index]])
             
             entry.bind ('<Return>', self.EnterKeyCallback)
             entry.bind ('<Button-1>', self.LeftMouseCallback)
-            entry.bind ('<Tab>', self.TabKeyCallback)
-            entry.bind ('<Shift-Tab>', self.ShiftTabKeyCallback)
-            
-            entry.pack(side='left', fill='x', expand=True)
-            ItemX.append (entry)
 
-        self.MaxY += 1
         self.EntryArray.append (ItemX)
-        self.EntryRowArrray.append (frame)
+
+        #
+        # Move and focus at last row.
+        #
+        self.X = 0
+        self.Y = self.MaxY
+        self.EntryObjectGet(self.X, self.Y).focus_set()
+        self.EntryObjectGet(self.X, self.Y).select_range(0, 'end')
+        self.DataCanvas.update_idletasks()
+        self.DataCanvas.yview_moveto (1)
 
     #
-    # Foucs at last row.
+    # Callback of go to next entry.
     #
-    def FocusAtLastRow (self):
-        self.EntryArray[self.MaxY][0].focus_set()
-        self.EntryArray[self.MaxY][0].select_range(0, 'end')
-        
-
-    #
-    # Callback when keyboard TAB key press.
-    #
-    def TabKeyCallback (self, event):
-        #
-        # There are two feature have not implemented.
-        # 1. Action tab when cursor at last row and column.
-        #    And use tab to focus fist enter after circle around.
-        #    It will focus at wrong location with enter key when last row with valid data.
-        # 2. Scrollbar are not linked with cursor.
-        #
+    def NextEntryCallback (self, event):
         if self.X < self.MaxX:
-            self.X += 1
+            x = self.X +1
+            y = self.Y
             
         else:
             if self.Y < self.MaxY:
-                self.X = 0
-                self.Y += 1                
-        self.EntryArray[self.Y][self.X].focus_set()
-        self.EntryArray[self.Y][self.X].select_range(0, 'end')
+                x = 0
+                y = self.Y + 1
+            else :
+                x = self.MaxX
+                y = self.MaxY
+
+        self.FocusAtNewEntry (x, y)
     
     #
-    # Callback when keyboard shift-TAB key press.
+    # Callback of go to previous entry.
     #
-    def ShiftTabKeyCallback (self, event):
+    def PreEntryCallback (self, event):
         if self.X > 0:
-            self.X -= 1
+            x = self.X -1
+            y = self.Y
             
         else:
             if self.Y > 0:
-                self.X = self.MaxX
-                self.Y -= 1
+                x = self.MaxX
+                y = self.Y - 1
+            else :
+                x = 0
+                y = 0
                 
-        self.EntryArray[self.Y][self.X].focus_set()
-        self.EntryArray[self.Y][self.X].select_range(0, 'end')
+        self.FocusAtNewEntry (x, y)
     
     #
     # Callback when keyboard return key press.
     #
     def EnterKeyCallback (self, event):
-        if self.AdvanceEntryCallback != None:
-            self.AdvanceEntryCallback ()
         if (self.X ==self.MaxX) and (self.Y ==self.MaxY):
             #
             # If current cursor focus at last row and last column.
@@ -206,16 +266,46 @@ class Table (tk.Frame):
             #
             DataWithinRow = False
             for i in range (self.MaxX + 1):
-                if self.EntryArray[self.MaxY][i].get() != 'N/A':
+                if self.EntryTextGet (i, self.MaxY) != 'N/A':
                     DataWithinRow = True
                     break
             if DataWithinRow:
                 self.AddNewRow()
-        
-        #
-        # Callback of enter is similar with tab.
-        #
-        self.TabKeyCallback(None)
+
+        else:
+            #################################
+            # Particular table feature start#
+            #################################
+
+            #
+            # Picture column
+            #
+            if self.X == 3:
+                if (self.EntryTextGet(self.X, self.Y) == 'Y') or (self.EntryTextGet(self.X, self.Y) == 'y'):
+                    if (self.EntryStatusGet(self.X, self.Y) == 'new') or self.EntryStatusGet(self.X, self.Y) == 'modify':
+                        
+                        PicPath = Dialog.askopenfilename ()
+                        if PicPath=='':
+                            self.EntryTextSet (self.X, self.Y, 'N')
+                        else:
+                            self.EntryTextSet (self.X, self.Y, '@'+PicPath)
+                    else:
+                        self.EntryTextSet (self.X, self.Y, 'Y')
+
+                elif self.EntryTextGet(self.X, self.Y)[0] !='@':
+                    #
+                    # If string start with '@', it is valid.
+                    #
+                    self.EntryTextSet (self.X, self.Y, 'N')
+
+            ################################
+            # Particular table feature end #
+            ################################
+            
+            #
+            # Callback of enter is similar with tab.
+            #
+            self.NextEntryCallback(None)
 
     #
     # Callback when mouse left button press.
@@ -223,14 +313,75 @@ class Table (tk.Frame):
     def LeftMouseCallback (self, event):
         for i in range (self.MaxX + 1):
             for j in range (self.MaxY + 1):
-                if self.EntryArray[j][i] == event.widget:
-                    self.Y = j
-                    self.X = i
-                    self.EntryArray[self.Y][self.X].focus_set()
-                    self.EntryArray[self.Y][self.X].select_range(0, 'end')
+                if self.EntryObjectGet(i, j) == event.widget:
+                    self.FocusAtNewEntry (i, j)
 
-    def MouseWheelCallback (self):
-         self.DataCanvas.yview_scroll(-1*(event.delta/120), "units")
+    def ExistToRemove (self, event):
+        y = int(event.widget.get())
+
+        #
+        # Status : remove -> exist
+        #
+        if self.EntryStatusGet(0, y) == 'remove':
+            for x in range(self.ColumnNumber):
+                self.EntryStatusSet(x, y, 'exist')
+                self.EntryObjectGet(x, y).config (bg = '#DDFFDD')
+
+                self.EntryTextSet(x, y, self.EntryArray[y][x][self.DefineDefaultText])
+                
+                self.EntryArray[y][x][self.DefineDefaultText]
+
+        #
+        # Status : exist/modify -> remove
+        # Because modify only transfer from exist.
+        #
+        elif self.EntryStatusGet(0, y) != 'new':
+            for x in range(self.ColumnNumber):
+                self.EntryStatusSet(x, y, 'remove')
+                self.EntryObjectGet(x, y).config (bg = '#FFCCCC')
+
+    #
+    # If current entry text has been modify, and if current entry status is 
+    # 'exist', configure status to 'modify'.
+    # Then focus at new entry
+    #
+    def FocusAtNewEntry (self, x, y):
+        #
+        # If no row in table, do nothing.
+        #
+        if self.MaxY != -1:
+            if (self.EntryStatusGet(self.X, self.Y) == 'exist') or (self.EntryStatusGet(self.X, self.Y) == 'modify'):
+                if self.EntryArray[self.Y][self.X][self.DefineDefaultText] != self.EntryTextGet (self.X, self.Y):
+                    self.EntryStatusSet (self.X, self.Y, 'modify')
+                    self.EntryObjectGet(self.X, self.Y).config (bg = '#FFFFBB')
+                else:
+                    self.EntryStatusSet (self.X, self.Y, 'exist')
+                    self.EntryObjectGet(self.X, self.Y).config (bg = '#DDFFDD')
+
+            if self.EntryStatusGet(self.X, self.Y) == 'new':
+                self.EntryObjectGet(self.X, self.Y).config (bg = '#FFFFFF')
+            
+            self.Y = y
+            self.X = x
+            self.EntryObjectGet(self.X, self.Y).focus_set()
+            self.EntryObjectGet(self.X, self.Y).select_range(0, 'end')
+
+    def EntryObjectGet (self, x, y):
+        return self.EntryArray[y][x][self.DefineObject]
+
+    def EntryTextSet (self, x, y, NewString):
+        self.EntryObjectGet(x, y).delete(0, 'end')
+        self.EntryObjectGet(x, y).insert(0, NewString)
+    def EntryTextGet (self, x, y):
+        return self.EntryObjectGet(x, y).get()
+    
+    def EntryStatusSet (self, x, y, NewStatus):
+        self.EntryArray[y][x][self.DefineStatus] = NewStatus
+    def EntryStatusGet (self, x, y):
+        return self.EntryArray[y][x][self.DefineStatus]
+
+    def GetRowNumber(self):
+        return (self.MaxY + 1)
 
 #
 # GUI of add data to database
@@ -239,7 +390,7 @@ class GuiAddToDatabase (tk.Frame):
     def __init__(self, Parent, Database):
         tk.Frame.__init__(self, Parent)
         
-        Title = ('產品名稱', '產品代碼', '單價', '圖片(Y/N)')
+        Title = ('產品名稱', '產品代碼', '單價', '圖片(Y/N)', '備註')
         self.Database = Database
         
         self.rowconfigure(0, weight = 1)
@@ -251,10 +402,10 @@ class GuiAddToDatabase (tk.Frame):
             borderwidth = 3
             )
         
-        self.ObserveRegion = Table (self, Title)
+        self.table = Table (self, Title, ShowRowIndex = True)
             
         self.OperationRegion.grid(row=0, column=0, sticky='news', padx=1, pady=5)
-        self.ObserveRegion.grid(row=1, column=0, sticky='news', padx=1, pady=5)
+        self.table.grid(row=1, column=0, sticky='news', padx=1, pady=5)
         
         for i in range (3):
           self.OperationRegion.rowconfigure(i, weight = 1)
@@ -266,8 +417,9 @@ class GuiAddToDatabase (tk.Frame):
         #
         self.ExitButton = tk.Button (
             self.OperationRegion, 
-            text = '儲存:',
-            bg = '#AA88AA'
+            text = '儲存(S):',
+            bg = '#AA88AA',
+            command = self.ButtonSaveCallback
             )
         self.ExitButton.grid(row=0, column=7, sticky='news', padx=1, pady=5)
         
@@ -280,8 +432,9 @@ class GuiAddToDatabase (tk.Frame):
 
         self.ExitButton = tk.Button (
             self.OperationRegion, 
-            text = '回主畫面:',
-            bg = '#AA88AA'
+            text = '放棄變更(Q):',
+            bg = '#AA88AA',
+            command = self.ButtonBackCallback
             )
         self.ExitButton.grid(row=0, column=6, sticky='news', padx=1, pady=5)
         
@@ -322,28 +475,33 @@ class GuiAddToDatabase (tk.Frame):
             relief=tk.RIDGE
             )
         self.CompanyNameEntry.grid(row=1, column=1, sticky='news', padx=1, pady=5)
-
+        
         self.CompanyCodeEntry.focus_set()
 
         self.CompanyCodeEntry.bind ('<Return>', self.CompanyCodeCallback)
         self.CompanyNameEntry.bind ('<Return>', self.CompanyNameCallback)
+        self.bind_all ('<Control-Key-Q>', lambda event: self.ButtonBackCallback())
+        self.bind_all ('<Control-Key-q>', lambda event: self.ButtonBackCallback())
+        
+        self.bind_all ('<Control-Key-S>', lambda event: self.ButtonSaveCallback())
+        self.bind_all ('<Control-Key-s>', lambda event: self.ButtonSaveCallback())
         
     def CompanyCodeCallback (self, event):
-        CompanyCode = self.CompanyCodeEntry.get()
-        if CompanyCode != '':
-            CompanyName = self.Database.IsCompanyCodeExist(CompanyCode)
-            
-            if CompanyName ==None:
-                self.CompanyCodeWarningText.config (text = 'Code not Exist!!')
-                self.CompanyCodeEntry.select_range(0, 'end')
-                return
-            else:
-                self.CompanyCodeWarningText.config (text = '')
-                self.CompanyNameEntry.delete (0, 'end')
-                self.CompanyNameEntry.insert (0, CompanyName)
-                
-        self.CompanyNameEntry.focus_set()
-        self.CompanyNameEntry.select_range(0, 'end')
+         CompanyCode = self.CompanyCodeEntry.get()
+         if CompanyCode != '':
+             CompanyName = self.Database.IsCompanyCodeExist(CompanyCode)
+             
+             if CompanyName ==None:
+                 self.CompanyCodeWarningText.config (text = 'Code not Exist!!')
+                 self.CompanyCodeEntry.select_range(0, 'end')
+                 return
+             else:
+                 self.CompanyCodeWarningText.config (text = '')
+                 self.CompanyNameEntry.delete (0, 'end')
+                 self.CompanyNameEntry.insert (0, CompanyName)
+                 
+         self.CompanyNameEntry.focus_set()
+         self.CompanyNameEntry.select_range(0, 'end')
         
     def CompanyNameCallback (self, event):
         CompanyName = self.CompanyNameEntry.get()
@@ -356,15 +514,15 @@ class GuiAddToDatabase (tk.Frame):
                 print('Yes')
                 self.CompanyCodeEntry.config (state = 'readonly')
                 self.CompanyNameEntry.config (state = 'readonly')
-                self.AddDataToTable (CompanyData)
+                self.OneCompanyToTable (CompanyData)
 
-    def AddDataToTable (self, CompanyData):
+    def OneCompanyToTable (self, CompanyData):
 
         CurrentProduct = CompanyData.Header.Name.GetNextNode ()
 
         while CurrentProduct != None:
             Data = []
-
+            
             Data.append (CurrentProduct.Name.GetData())
             Data.append (CurrentProduct.Code.GetData())
             Data.append (CurrentProduct.Price.GetData())
@@ -374,13 +532,45 @@ class GuiAddToDatabase (tk.Frame):
             else:
                 Data.append ('Y')
 
-            CurrentProduct = CurrentProduct.Name.GetNextNode()
-            self.ObserveRegion.AddNewRow(Data)
+            Data.append ('Temp') ##temp
 
-        self.ObserveRegion.AddNewRow()
-        self.ObserveRegion.FocusAtLastRow ()
-            
+            CurrentProduct = CurrentProduct.Name.GetNextNode()
+            self.table.AddNewRow(Data)
+
+        self.table.AddNewRow()
+
+    def DataValidCheck(self):
+        logging.info ('')
+        logging.info ('DataValidCheck() Start...')
+
+        dataValid = True
+        rowNumber = self.table.GetRowNumber()
         
+        for currentRow in range (rowNumber):
+            #
+            # Name column
+            #
+            Name = self.table.EntryTextGet(0, currentRow)
+            for compareRow in range (currentRow+1, rowNumber):
+                #
+                # Should not have two same Product name
+                #
+                if Name == self.table.EntryTextGet(0, compareRow):
+                    self.table.EntryObjectGet(0, currentRow).config (bg = '#FF3333')
+                    self.table.EntryObjectGet(0, compareRow).config (bg = '#FF3333')
+                    dataValid = False
+               
+        logging.info ('DataValidCheck() End...')
+
+    def ButtonBackCallback(self):
+        Abort = messagebox.askokcancel('WARNING', '確定放棄此次編輯?')
+        print (Abort)
+            
+        if Abort == True:
+            self.destroy()
+            
+    def ButtonSaveCallback (self):
+         self.DataValidCheck()
 
     
 
@@ -388,11 +578,17 @@ class GuiAddToDatabase (tk.Frame):
 # Simple test of this module.
 #
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    
     root = tk.Tk()
     root.geometry ('800x600+10+10')
     Database = CorporateDatabaseMain.LoadDatabase()
     a = GuiAddToDatabase(root, Database)
     a.pack (side = 'top', fill = 'both', expand = True)
+
+    for i in range (0):
+        a.table.AddNewRow()
+
 
     b=tk.Button (
             root,
@@ -400,4 +596,4 @@ if __name__ == '__main__':
             bg = '#AA88AA'
             ).pack()
     
-    root.mainloop()
+    root.mainloop
