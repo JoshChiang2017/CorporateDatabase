@@ -382,6 +382,12 @@ class Table (tk.Frame):
 
     def GetRowNumber(self):
         return (self.MaxY + 1)
+    def GetMaxRow(self):
+        return (self.MaxY)
+    def GetColumnNumber(self):
+        return (self.MaxX + 1)
+    def GetMaxColumn(self):
+        return (self.MaxX)
 
 #
 # GUI of add data to database
@@ -390,7 +396,7 @@ class GuiAddToDatabase (tk.Frame):
     def __init__(self, Parent, Database):
         tk.Frame.__init__(self, Parent)
         
-        Title = ('產品名稱', '產品代碼', '單價', '圖片(Y/N)', '備註')
+        self.title = ('產品名稱', '產品代碼', '單價', '圖片(Y/N)', '備註')
         self.Database = Database
         
         self.rowconfigure(0, weight = 1)
@@ -402,7 +408,7 @@ class GuiAddToDatabase (tk.Frame):
             borderwidth = 3
             )
         
-        self.table = Table (self, Title, ShowRowIndex = True)
+        self.table = Table (self, self.title, ShowRowIndex = True)
             
         self.OperationRegion.grid(row=0, column=0, sticky='news', padx=1, pady=5)
         self.table.grid(row=1, column=0, sticky='news', padx=1, pady=5)
@@ -540,39 +546,122 @@ class GuiAddToDatabase (tk.Frame):
         self.table.AddNewRow()
 
     def DataValidCheck(self):
-        logging.info ('')
         logging.info ('DataValidCheck() Start...')
 
-        dataValid = True
-        rowNumber = self.table.GetRowNumber()
+        msg = 'Invalid:\n'
+        def LogWarning(line, message):
+            nonlocal msg
+            msgFormat = 'Row(%d). ' %line + message
+            logging.info (msgFormat)
+            msg += msgFormat + '\n'
+
+        nameValid = True
+        codeValid = True
+        priceValid = True
+        lastRowValid = True
+        rowNumber = self.table.GetMaxRow()# Don't compare last row.
         
         for currentRow in range (rowNumber):
             #
-            # Name column
+            # Name column (0)
+            # Code column (1)
+            # Price column (2)
             #
-            Name = self.table.EntryTextGet(0, currentRow)
-            for compareRow in range (currentRow+1, rowNumber):
+            name = self.table.EntryTextGet(0, currentRow)
+            code = self.table.EntryTextGet(1, currentRow)
+            price = self.table.EntryTextGet(2, currentRow)
+            
+            #
+            # Should not have two same Product name, empty is illegal.
+            #
+            if name == '':
+                self.table.EntryObjectGet(0, currentRow).config (bg = '#FF3333')
+                nameValid = False
+                LogWarning (currentRow, 'Name invalid (empty).')
+
+            else:
+                for compareRow in range (currentRow+1, rowNumber):
+                    if name == self.table.EntryTextGet(0, compareRow):
+                        self.table.EntryObjectGet(0, currentRow).config (bg = '#FF3333')
+                        self.table.EntryObjectGet(0, compareRow).config (bg = '#FF3333')
+                        nameValid = False
+                        LogWarning (currentRow, 'Name invalid (repeat).')
+                        LogWarning (compareRow, 'Code invalid (repeat).')
+
+            #
+            # Should not have two same Code name, empty is legal.
+            #
+            if code != '':
+                for compareRow in range (currentRow+1, rowNumber):
+                    if code == self.table.EntryTextGet (1, compareRow):
+                        self.table.EntryObjectGet(1, currentRow).config (bg = '#FF3333')
+                        self.table.EntryObjectGet(1, compareRow).config (bg = '#FF3333')
+                        codeValid = False
+                        LogWarning (currentRow, 'Code invalid (repeat).')
+                        LogWarning (compareRow, 'Code invalid (repeat).')
+            
+            #
+            # Price should be number and not zero. 
+            #
+            if ((price.strip().isdigit()) and (int(price) != 0)):
                 #
-                # Should not have two same Product name
+                # Remove space.
                 #
-                if Name == self.table.EntryTextGet(0, compareRow):
-                    self.table.EntryObjectGet(0, currentRow).config (bg = '#FF3333')
-                    self.table.EntryObjectGet(0, compareRow).config (bg = '#FF3333')
-                    dataValid = False
-               
-        logging.info ('DataValidCheck() End...')
+                self.table.EntryTextSet(2, currentRow, price.strip())
+                
+            else:
+                self.table.EntryObjectGet(2, currentRow).config (bg = '#FF3333')
+                priceValid = False
+                LogWarning (currentRow, 'Price invalid.')
+
+        #
+        # Last row should be all 'N/A'
+        #
+        for column in range (len(self.title)):
+            if self.table.EntryTextGet(column, rowNumber) != 'N/A':
+                self.table.EntryObjectGet(column, rowNumber).config (bg = '#FF3333')
+                lastRowValid = False
+                LogWarning (rowNumber, 'Lase row should be N/A')
+
+        logging.info ('DataValidCheck() End...\n')
+
+        if nameValid and codeValid and priceValid and lastRowValid:
+            return True
+        else:
+            messagebox.showinfo('WARNING', msg)
+            return False
 
     def ButtonBackCallback(self):
-        Abort = messagebox.askokcancel('WARNING', '確定放棄此次編輯?')
-        print (Abort)
+        abort = messagebox.askokcancel('WARNING', '確定放棄此次編輯?')
             
-        if Abort == True:
+        if abort:
             self.destroy()
             
     def ButtonSaveCallback (self):
-         self.DataValidCheck()
+        if self.DataValidCheck() == True:
+            addNumber = 0
+            removeNumber = 0
+            modifyNumber = 0
 
-    
+            for y in range (self.table.GetMaxRow()):
+                if self.table.EntryStatusGet (0, y) == 'new':
+                    addNumber += 1
+                elif self.table.EntryStatusGet (0, y) == 'remove':
+                    removeNumber += 1
+                else:
+                    for x in range (self.table.GetColumnNumber()):
+                        if self.table.EntryStatusGet (x, y) == 'modify':
+                            modifyNumber += 1
+
+            msg = '確定儲存此次編輯?\n\n' +\
+                '新增 : %d\n' %addNumber +\
+                '移除 : %d\n' %removeNumber +\
+                '修改 : %d\n' %modifyNumber
+                
+            save = messagebox.askokcancel('WARNING', msg)
+
+            if save:
+                logging.info ('Modify product file success!\n')
 
 #
 # Simple test of this module.
@@ -581,7 +670,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     
     root = tk.Tk()
-    root.geometry ('800x600+10+10')
+    root.geometry ('800x600+100+100')
     Database = CorporateDatabaseMain.LoadDatabase()
     a = GuiAddToDatabase(root, Database)
     a.pack (side = 'top', fill = 'both', expand = True)
@@ -596,4 +685,4 @@ if __name__ == '__main__':
             bg = '#AA88AA'
             ).pack()
     
-    root.mainloop
+    root.mainloop()
