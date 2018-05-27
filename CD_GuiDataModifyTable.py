@@ -2,6 +2,9 @@ import tkinter as tk
 import CorporateDatabaseMain
 import logging
 import tkinter.filedialog as Dialog
+import CD_LinkingList as link
+import CD_FileAccess
+import CD_LogHistotry as logger
 from tkinter import messagebox
 
 class PopupMenu(tk.Frame):
@@ -327,9 +330,7 @@ class Table (tk.Frame):
                 self.EntryStatusSet(x, y, 'exist')
                 self.EntryObjectGet(x, y).config (bg = '#DDFFDD')
 
-                self.EntryTextSet(x, y, self.EntryArray[y][x][self.DefineDefaultText])
-                
-                self.EntryArray[y][x][self.DefineDefaultText]
+                self.EntryTextSet(x, y, self.EntryDefaultGet(x, y))
 
         #
         # Status : exist/modify -> remove
@@ -351,7 +352,7 @@ class Table (tk.Frame):
         #
         if self.MaxY != -1:
             if (self.EntryStatusGet(self.X, self.Y) == 'exist') or (self.EntryStatusGet(self.X, self.Y) == 'modify'):
-                if self.EntryArray[self.Y][self.X][self.DefineDefaultText] != self.EntryTextGet (self.X, self.Y):
+                if self.EntryDefaultGet(self.X, self.Y) != self.EntryTextGet (self.X, self.Y):
                     self.EntryStatusSet (self.X, self.Y, 'modify')
                     self.EntryObjectGet(self.X, self.Y).config (bg = '#FFFFBB')
                 else:
@@ -380,6 +381,9 @@ class Table (tk.Frame):
     def EntryStatusGet (self, x, y):
         return self.EntryArray[y][x][self.DefineStatus]
 
+    def EntryDefaultGet (self, x, y):
+        return self.EntryArray[y][x][self.DefineDefaultText]
+
     def GetRowNumber(self):
         return (self.MaxY + 1)
     def GetMaxRow(self):
@@ -398,6 +402,8 @@ class GuiAddToDatabase (tk.Frame):
         
         self.title = ('產品名稱', '產品代碼', '單價', '圖片(Y/N)', '備註')
         self.Database = Database
+        self.CompanyName =None
+        self.companyData = None
         
         self.rowconfigure(0, weight = 1)
         self.rowconfigure(1, weight = 10)
@@ -520,11 +526,13 @@ class GuiAddToDatabase (tk.Frame):
                 print('Yes')
                 self.CompanyCodeEntry.config (state = 'readonly')
                 self.CompanyNameEntry.config (state = 'readonly')
+                self.CompanyName = CompanyName
                 self.OneCompanyToTable (CompanyData)
 
-    def OneCompanyToTable (self, CompanyData):
+    def OneCompanyToTable (self, companyData):
 
-        CurrentProduct = CompanyData.Header.Name.GetNextNode ()
+        self.companyData = companyData
+        CurrentProduct = companyData.Header.Name.GetNextNode ()
 
         while CurrentProduct != None:
             Data = []
@@ -538,7 +546,7 @@ class GuiAddToDatabase (tk.Frame):
             else:
                 Data.append ('Y')
 
-            Data.append ('Temp') ##temp
+            Data.append ('Temp') ##temp print
 
             CurrentProduct = CurrentProduct.Name.GetNextNode()
             self.table.AddNewRow(Data)
@@ -635,10 +643,16 @@ class GuiAddToDatabase (tk.Frame):
         abort = messagebox.askokcancel('WARNING', '確定放棄此次編輯?')
             
         if abort:
-            self.destroy()
+            self.Exit()
             
     def ButtonSaveCallback (self):
+        #
+        # 1.Check data of table valid.
+        #
         if self.DataValidCheck() == True:
+            #
+            # 2. Show message make sure to modify database.
+            #
             addNumber = 0
             removeNumber = 0
             modifyNumber = 0
@@ -661,7 +675,73 @@ class GuiAddToDatabase (tk.Frame):
             save = messagebox.askokcancel('WARNING', msg)
 
             if save:
+                #
+                # 3.Call api save to database.
+                #
+                log = logger.HistoryLog(self.CompanyName)
+                for y in range (self.table.GetMaxRow()):
+                    if self.table.EntryStatusGet (0, y) == 'new':
+                        node = self.TransferRowToNode(y)
+                        self.companyData.AddNode(node)
+                        log.SetAddFile (node)
+                        
+                    elif self.table.EntryStatusGet (0, y) == 'remove':
+                        name = self.table.EntryTextGet (0, y)
+                        node = self.TransferRowDefaultToNode(y)
+                        self.companyData.RemoveNode (name)
+                        log.SetRemoveFile (node)
+                        
+                    else:
+                        for x in range (self.table.GetColumnNumber()):
+                            if self.table.EntryStatusGet (x, y) == 'modify':
+                                name = self.table.EntryDefaultGet (0, y)
+                                preNode = self.TransferRowDefaultToNode(y)
+                                postNode = self.TransferRowToNode(y)
+
+                                self.companyData.ModifyNode (name, postNode)
+                                log.SetModifyFile (preNode, postNode)
+                                break
+
+                #
+                # 4. Save database to hard drive
+                #
+                CD_FileAccess.ExportCompany(self.CompanyName, self.companyData)
+                log.AddLog()
                 logging.info ('Modify product file success!\n')
+                self.destroy()
+
+    #
+    # Transfer specific node into class ProductNode
+    #
+    def TransferRowToNode(self, row):
+        node = link.ProductNode()
+
+        node.Name.SetData (self.table.EntryTextGet (0, row))
+        node.Code.SetData (self.table.EntryTextGet (1, row))
+        node.Price.SetData (self.table.EntryTextGet (2, row))
+        node.comment = self.table.EntryTextGet (4, row)
+
+        return node
+    
+    def TransferRowDefaultToNode(self, row):
+        node = link.ProductNode()
+
+        node.Name.SetData (self.table.EntryDefaultGet (0, row))
+        node.Code.SetData (self.table.EntryDefaultGet (1, row))
+        node.Price.SetData (self.table.EntryDefaultGet (2, row))
+        node.comment = self.table.EntryDefaultGet (4, row)
+
+        return node
+
+    def Exit(self):
+        self.destroy()
+        self.unbind_all ('<Next>')
+        self.unbind_all ('<Prior>')
+        self.unbind_all ('<Control-Key-Q>')
+        self.unbind_all ('<Control-Key-q>')
+        self.unbind_all ('<Control-Key-S>')
+        self.unbind_all ('<Control-Key-s>')
+        
 
 #
 # Simple test of this module.

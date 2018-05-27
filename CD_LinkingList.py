@@ -1,6 +1,10 @@
 import os
+import logging
 
 ## Linking list
+#
+# pre =previous
+# peri = period
 #
 # Company
 #     Column     : Name | Code |
@@ -28,12 +32,13 @@ class ListNode (object):
         self.NodeData = NodeData
         
 class ProductNode (object):
-    def __init__(self, Name = 'NULL', Code = 'NULL', Price = 0, Image = None):
+    def __init__(self, Name = 'NULL', Code = 'NULL', Price = 0, Image = None, comment = 'NULL'):
         
         self.Name = ListNode()
         self.Code = ListNode()
         self.Price = ListNode()
         self.Image = Image
+        self.comment = comment
 
         self.Name.SetData (Name)
         self.Code.SetData (Code)
@@ -44,24 +49,26 @@ class ProductNode (object):
         self.Code.SetData (NewData.Code.GetData())
         self.Price.SetData (NewData.Price.GetData())
         self.Image = NewData.Image
+        self.comment = NewData.comment
+
+    def GetNext (self):
+        return self.Name.GetNextNode()
+    
+    def GetName (self):
+        return self.Name.GetData()
         
 class ProductList (object):
-    def __init__(self):
+    def __init__(self, companyName = None):
         self.Header = ProductNode()
+        self.companyName = companyName
         self.TotalNodeNumber = 0
-
-        #
-        # Flag indicate whether data in the list has been modified.
-        # Poroduct has been added/modified/removed in this company.
-        #
-        self.ProductModify = False
 
     def IsEmpty (self):
         return self.Header.Name.NextNode == None
     
-    def GetHeader(self):
-        return self.Header
-    
+    def GetFirst(self):
+        return self.Header.Name.GetNextNode()
+
     def AddNode(self, NewNodeInput):
         assert isinstance(NewNodeInput, ProductNode)
         
@@ -120,23 +127,83 @@ class ProductList (object):
         PreNode.Price.SetNextNode (NewNode)
 
     #
+    # @removeNodeNmae the remove node product name
+    #
+    # @return  True   Node remove successfully
+    # @return  False  Node remove failed.
+    #
+    def RemoveNode (self, removeNodeNmae):
+        assert isinstance(removeNodeNmae, str)
+
+        preNode = self.Header
+        periNode = preNode.GetNext()
+
+        while periNode != None:
+            if periNode.Name.GetData() == removeNodeNmae:
+                preNode.Name.SetNextNode (periNode.Name.GetNextNode ())
+                preNode.Code.SetNextNode (periNode.Code.GetNextNode ())
+                preNode.Price.SetNextNode (periNode.Price.GetNextNode ())
+                break
+
+            preNode = periNode
+            periNode = periNode.GetNext()
+
+        #
+        # If specific node is not found.
+        #
+        if periNode == None:
+            logging.warning('RemoveNode:')
+            logging.warning('  Company : %s' %self.companyName)
+            logging.warning('  Product : %s' %removeNodeNmae)
+            logging.warning('The node want to remove is not exist.')
+            return False
+
+        else:
+            logging.info('RemoveNode:')
+            logging.info('  Company : %s' %self.companyName)
+            logging.info('  Product : %s' %removeNodeNmae)
+            logging.info('The node remove successfully.')
+            return True
+
+    #
+    # Note! This function will not modify picture in the database.
+    # It must to consider that modify picture name when modify product name.
+    #
+    # @oriProductName  Product name of modify node
+    # @modNode         
+    #
+    def ModifyNode (self, oriProductName, modNode):
+        assert isinstance(oriProductName, str)
+        assert isinstance(modNode, ProductNode)
+
+        #
+        # Remove original node and add modify node.
+        #
+        if self.RemoveNode (oriProductName) == True:
+                    
+            logging.info('AddNode:')
+            logging.info('  Company : %s' %self.companyName)
+            logging.info('  Product : %s' %modNode.GetName())
+            self.AddNode (modNode)
+        
+    #
     # Find specific ProductNode by product name.
     #
-    def Find (self, SearchName):
-        assert isinstance(SearchName, str)
-        CurrentNode = self.Header.Name.GetNextNode()
+    def Find (self, searchName):
+        assert isinstance(searchName, str)
+        currentNode = self.GetFirst()
 
-        while CurrentNode != None:
-            if CurrentNode.Name.GetData() > SearchName:
+        while currentNode != None:
+            if currentNode.Name.GetData() > searchName:
                 #
                 # No fit
                 #
                 return None
             
-            elif CurrentNode.Name.GetData() == SearchName:
-                return CurrentNode
+            elif currentNode.Name.GetData() == searchName:
+                return currentNode
             else:
-                CurrentNode = CurrentNode.Name.GetNextNode()
+                currentNode = currentNode.GetNext()
 
     def Print (self):
         CurrentNode = self.Header.Name.GetNextNode()
@@ -160,7 +227,7 @@ class CompanyNode (object):
         
         self.Name = ListNode ()
         self.Code = ListNode ()
-        self.ProductListHeader = ProductList ()
+        self.ProductListHeader = ProductList (Name)
         
         self.Name.SetData (Name)
         self.Code.SetData (Code)
@@ -169,24 +236,12 @@ class CompanyList (object):
     def __init__(self):
         self.Header = CompanyNode ()
         self.TotalNodeNumber = 0
-        
-        #
-        # Flag indicate whether data in the list has been modified.
-        # Company has been added/modified/removed in this database.
-        #
-        self.CompanyModify = False
 
     def IsEmpty (self):
         return self.Header.CompanyName.NextNode == None
     
     def GetHeader(self):
         return self.Header
-
-    def CompanyHasBeenModified (self):
-        self.CompanyModify = False
-
-    def ProductHasBeenModified (self, Comapny):
-        self.FindCompany (Company).ProductModify
     
     def NewCompanyNode(self, Name = 'NULL', Code = 'NULL'):
         assert isinstance(Name, str)
@@ -311,6 +366,7 @@ class CompanyList (object):
 # Simple test of this module.
 #
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.WARNING)
     print ('--------- CA_LinkingList.py  Start ---------')
     
     a = ProductNode ('ProductA', 'Aaa', 10)
