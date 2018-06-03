@@ -41,22 +41,32 @@ class EntryMenu (tk.Frame):
         self.FrameMainBottom.columnconfigure(0, weight = 1)
         self.FrameMainBottom.columnconfigure(1, weight = 1)
         self.FrameMainBottom.columnconfigure(2, weight = 1)
+        self.FrameMainBottom.columnconfigure(3, weight = 1)
         
         #
         # Button
         #
-        self.ButtonModify = tk.Button (
+        self.ButtonModifyCompany = tk.Button (
             self.FrameMainBottom,
-            text = '修改',
+            text = '修改(公司)',
             font = ('標楷體', 14),
-            bg = '#6899CA'
+            bg = '#6899CA',
+            width=1
+            )
+        self.ButtonModifyProduct = tk.Button (
+            self.FrameMainBottom,
+            text = '修改(產品)',
+            font = ('標楷體', 14),
+            bg = '#6899CA',
+            width=1
             )
         
         self.ButtonSearch = tk.Button (
             self.FrameMainBottom,
             text = '查詢',
             font = ('標楷體', 14),
-            bg = '#6899CA'
+            bg = '#6899CA',
+            width=1
             )
         
         self.ButtonExit = tk.Button (
@@ -64,12 +74,14 @@ class EntryMenu (tk.Frame):
             text = '離開',
             font = ('標楷體', 14),
             bg = '#6899CA',
+            width=1,
             command=lambda: Parent.destroy ()
             )
 
-        self.ButtonModify.grid (row=0, column=0, sticky='news', padx=1, pady=1)
-        self.ButtonSearch.grid (row=0, column=1, sticky='news', padx=1, pady=1)
-        self.ButtonExit.grid (row=0, column=2, sticky='news', padx=1, pady=1)
+        self.ButtonModifyCompany.grid (row=0, column=0, sticky='news', padx=1, pady=1)
+        self.ButtonModifyProduct.grid (row=0, column=1, sticky='news', padx=1, pady=1)
+        self.ButtonSearch.grid (row=0, column=2, sticky='news', padx=1, pady=1)
+        self.ButtonExit.grid (row=0, column=3, sticky='news', padx=1, pady=1)
         self.update()
 
         #

@@ -7,23 +7,6 @@ import CD_FileAccess
 import CD_LogHistotry as logger
 from tkinter import messagebox
 
-class PopupMenu(tk.Frame):
-    def __init__(self, Parent):
-        tk.Frame.__init__(self, Parent, bg = '#123456')
-        self.listBox = tk.Listbox(self, height=1)
-        self.button = tk.Button(self, text='v', command=self.Triggle)
-        self.HideList = True
-        
-        for i in range(10):
-            self.listBox.insert(i, 'Item%d'%i)
-            
-        self.listBox.grid(row=1, column=1, sticky='news')
-        self.button.grid(row=1, column=2, sticky='news')
-        
-    def Triggle(self):
-        self.HideList ^= 1
-        self.listBox.config (height=[self.listBox.size(), 1][self.HideList])
-        
 #
 # @Title                     List of string display on each top of column.
 # @ShowIndex                 Display row index.
@@ -280,26 +263,6 @@ class Table (tk.Frame):
             # Particular table feature start#
             #################################
 
-            #
-            # Picture column
-            #
-            if self.X == 3:
-                if (self.EntryTextGet(self.X, self.Y) == 'Y') or (self.EntryTextGet(self.X, self.Y) == 'y'):
-                    if (self.EntryStatusGet(self.X, self.Y) == 'new') or self.EntryStatusGet(self.X, self.Y) == 'modify':
-                        
-                        PicPath = Dialog.askopenfilename ()
-                        if PicPath=='':
-                            self.EntryTextSet (self.X, self.Y, 'N')
-                        else:
-                            self.EntryTextSet (self.X, self.Y, '@'+PicPath)
-                    else:
-                        self.EntryTextSet (self.X, self.Y, 'Y')
-
-                elif self.EntryTextGet(self.X, self.Y)[0] !='@':
-                    #
-                    # If string start with '@', it is valid.
-                    #
-                    self.EntryTextSet (self.X, self.Y, 'N')
 
             ################################
             # Particular table feature end #
@@ -396,160 +359,66 @@ class Table (tk.Frame):
 #
 # GUI of add data to database
 #
-class GuiAddToDatabase (tk.Frame):
+class GuiCompanyModify (tk.Frame):
     def __init__(self, Parent, Database):
         tk.Frame.__init__(self, Parent)
         
-        self.title = ('產品名稱', '產品代碼', '單價', '圖片(Y/N)', '備註')
-        self.Database = Database
-        self.CompanyName =None
-        self.companyData = None
+        self.title = ('公司名稱', '公司代號')
+        self.database = Database
         
         self.rowconfigure(0, weight = 1)
-        self.rowconfigure(1, weight = 10)
+        self.rowconfigure(1, weight = 100)
         self.columnconfigure(0, weight = 1)
         
-        self.OperationRegion = tk.Frame(
+        self.controlFrame = tk.Frame(
             self,
             borderwidth = 3
             )
         
         self.table = Table (self, self.title, ShowRowIndex = True)
             
-        self.OperationRegion.grid(row=0, column=0, sticky='news', padx=1, pady=5)
-        self.table.grid(row=1, column=0, sticky='news', padx=1, pady=5)
-        
-        for i in range (3):
-          self.OperationRegion.rowconfigure(i, weight = 1)
-        for i in range (8):
-          self.OperationRegion.columnconfigure(i, weight = 1)
+        self.controlFrame.grid(row=0, column=0, sticky='news')
+        self.table.grid(row=1, column=0, sticky='news')
         
         #
         # Operation Region - Button
         #
-        self.ExitButton = tk.Button (
-            self.OperationRegion, 
+        self.SaveButton = tk.Button (
+            self.controlFrame, 
             text = '儲存(S):',
             bg = '#AA88AA',
+            width=20,
             command = self.ButtonSaveCallback
             )
-        self.ExitButton.grid(row=0, column=7, sticky='news', padx=1, pady=5)
+        self.SaveButton.pack (side = 'left', fill = 'y', padx=5)
         
-        self.SaveButton = tk.Button (
-            self.OperationRegion, 
-            text = '刪除已選取:',
-            bg = '#AA88AA'
-            )
-        self.SaveButton.grid(row=1, column=7, sticky='news', padx=1, pady=5)
-
         self.ExitButton = tk.Button (
-            self.OperationRegion, 
+            self.controlFrame, 
             text = '放棄變更(Q):',
             bg = '#AA88AA',
+            width=20,
             command = self.ButtonBackCallback
             )
-        self.ExitButton.grid(row=0, column=6, sticky='news', padx=1, pady=5)
-        
-        #
-        # Operation Region - Entry
-        #
-        self.CompanyCodeText = tk.Label (
-            self.OperationRegion, 
-            text = '公司代碼:'
-            )
-        self.CompanyCodeText.grid(row=0, column=0, sticky='news', padx=1, pady=5)
-        
-        self.CompanyCodeEntry = tk.Entry (
-            self.OperationRegion,
-            borderwidth = 3, 
-            relief=tk.RIDGE
-            )
-        self.CompanyCodeEntry.grid(row=0, column=1, sticky='news', padx=1, pady=5)
-        
-        self.CompanyCodeWarningText = tk.Label (
-            self.OperationRegion,
-            width = 10,
-            #text = 'Code Incorrect!!',
-            foreground = '#FF0000',
-            font= ("Times New Roman", 12, "bold")
-            )
-        self.CompanyCodeWarningText.grid(row=0, column=2, sticky='news')
-        
-        self.CompanyNameText = tk.Label (
-            self.OperationRegion, 
-            text = '公司名稱:'
-            )
-        self.CompanyNameText.grid(row=1, column=0, sticky='news', padx=1, pady=5)
-        
-        self.CompanyNameEntry = tk.Entry (
-            self.OperationRegion,
-            borderwidth = 3, 
-            relief=tk.RIDGE
-            )
-        self.CompanyNameEntry.grid(row=1, column=1, sticky='news', padx=1, pady=5)
-        
-        self.CompanyCodeEntry.focus_set()
-
-        self.CompanyCodeEntry.bind ('<Return>', self.CompanyCodeCallback)
-        self.CompanyNameEntry.bind ('<Return>', self.CompanyNameCallback)
-        self.bind_all ('<Control-Key-Q>', lambda event: self.ButtonBackCallback())
-        self.bind_all ('<Control-Key-q>', lambda event: self.ButtonBackCallback())
+        self.ExitButton.pack (side = 'left', fill = 'y', padx=5)
         
         self.bind_all ('<Control-Key-S>', lambda event: self.ButtonSaveCallback())
         self.bind_all ('<Control-Key-s>', lambda event: self.ButtonSaveCallback())
+        self.bind_all ('<Control-Key-Q>', lambda event: self.ButtonBackCallback())
+        self.bind_all ('<Control-Key-q>', lambda event: self.ButtonBackCallback())
         
-    def CompanyCodeCallback (self, event):
-         CompanyCode = self.CompanyCodeEntry.get()
-         if CompanyCode != '':
-             CompanyName = self.Database.IsCompanyCodeExist(CompanyCode)
-             
-             if CompanyName ==None:
-                 self.CompanyCodeWarningText.config (text = 'Code not Exist!!')
-                 self.CompanyCodeEntry.select_range(0, 'end')
-                 return
-             else:
-                 self.CompanyCodeWarningText.config (text = '')
-                 self.CompanyNameEntry.delete (0, 'end')
-                 self.CompanyNameEntry.insert (0, CompanyName)
-                 
-         self.CompanyNameEntry.focus_set()
-         self.CompanyNameEntry.select_range(0, 'end')
-        
-    def CompanyNameCallback (self, event):
-        CompanyName = self.CompanyNameEntry.get()
-        if CompanyName != '':
-            CompanyData = self.Database.FindCompany (CompanyName)
+        self.TableInit()
 
-            if CompanyData == None:
-                print('No')
-            else:
-                print('Yes')
-                self.CompanyCodeEntry.config (state = 'readonly')
-                self.CompanyNameEntry.config (state = 'readonly')
-                self.CompanyName = CompanyName
-                self.OneCompanyToTable (CompanyData)
+    def TableInit (self):
 
-    def OneCompanyToTable (self, companyData):
-
-        self.companyData = companyData
-        CurrentProduct = companyData.Header.Name.GetNextNode ()
-
-        while CurrentProduct != None:
-            Data = []
+        periCompany = self.database.GetFirst()
+        while periCompany != None:
+            data = []
             
-            Data.append (CurrentProduct.Name.GetData())
-            Data.append (CurrentProduct.Code.GetData())
-            Data.append (CurrentProduct.Price.GetData())
-
-            if (CurrentProduct.Image == None):
-                Data.append ('N')
-            else:
-                Data.append ('Y')
-
-            Data.append ('Temp') ##temp print
-
-            CurrentProduct = CurrentProduct.Name.GetNextNode()
-            self.table.AddNewRow(Data)
+            data.append (periCompany.Name.GetData())
+            data.append (periCompany.Code.GetData())
+            
+            periCompany = periCompany.GetNext()
+            self.table.AddNewRow (data)
 
         self.table.AddNewRow()
 
@@ -557,15 +426,14 @@ class GuiAddToDatabase (tk.Frame):
         logging.info ('DataValidCheck() Start...')
 
         msg = 'Invalid:\n'
-        def LogWarning(line, message):
+        def LogWarning(rowNumber, message):
             nonlocal msg
-            msgFormat = 'Row(%d). ' %line + message
+            msgFormat = 'Row(%d). ' %rowNumber + message
             logging.info (msgFormat)
             msg += msgFormat + '\n'
 
         nameValid = True
         codeValid = True
-        priceValid = True
         lastRowValid = True
         rowNumber = self.table.GetMaxRow()# Don't compare last row.
         
@@ -573,19 +441,24 @@ class GuiAddToDatabase (tk.Frame):
             #
             # Name column (0)
             # Code column (1)
-            # Price column (2)
             #
             name = self.table.EntryTextGet(0, currentRow)
             code = self.table.EntryTextGet(1, currentRow)
-            price = self.table.EntryTextGet(2, currentRow)
             
             #
             # Should not have two same Product name, empty is illegal.
+            # Company name with '/' is illegal. 
+            # Because it cause error when create a new folder with path.
             #
-            if name == '':
+            if (name == '') or (name == 'N/A'):
                 self.table.EntryObjectGet(0, currentRow).config (bg = '#FF3333')
                 nameValid = False
                 LogWarning (currentRow, 'Name invalid (empty).')
+                
+            elif name.find('/') != -1:
+                self.table.EntryObjectGet(0, currentRow).config (bg = '#FF3333')
+                nameValid = False
+                LogWarning (currentRow, 'Name invalid (should not contain \'/\' ).')
 
             else:
                 for compareRow in range (currentRow+1, rowNumber):
@@ -599,7 +472,12 @@ class GuiAddToDatabase (tk.Frame):
             #
             # Should not have two same Code name, empty is legal.
             #
-            if code != '':
+            if code == 'N/A':
+                self.table.EntryObjectGet(1, currentRow).config (bg = '#FF3333')
+                nameValid = False
+                LogWarning (currentRow, 'Code invalid (empty).')
+            
+            else:
                 for compareRow in range (currentRow+1, rowNumber):
                     if code == self.table.EntryTextGet (1, compareRow):
                         self.table.EntryObjectGet(1, currentRow).config (bg = '#FF3333')
@@ -607,20 +485,6 @@ class GuiAddToDatabase (tk.Frame):
                         codeValid = False
                         LogWarning (currentRow, 'Code invalid (repeat).')
                         LogWarning (compareRow, 'Code invalid (repeat).')
-            
-            #
-            # Price should be number and not zero. 
-            #
-            if ((price.strip().isdigit()) and (int(price) != 0)):
-                #
-                # Remove space.
-                #
-                self.table.EntryTextSet(2, currentRow, price.strip())
-                
-            else:
-                self.table.EntryObjectGet(2, currentRow).config (bg = '#FF3333')
-                priceValid = False
-                LogWarning (currentRow, 'Price invalid.')
 
         #
         # Last row should be all 'N/A'
@@ -633,7 +497,7 @@ class GuiAddToDatabase (tk.Frame):
 
         logging.info ('DataValidCheck() End...\n')
 
-        if nameValid and codeValid and priceValid and lastRowValid:
+        if nameValid and codeValid and lastRowValid:
             return True
         else:
             messagebox.showinfo('WARNING', msg)
@@ -678,34 +542,39 @@ class GuiAddToDatabase (tk.Frame):
                 #
                 # 3.Call api save to database.
                 #
-                log = logger.HistoryLog(self.CompanyName)
+                log = logger.CompanyHistoryLog ()
                 for y in range (self.table.GetMaxRow()):
                     if self.table.EntryStatusGet (0, y) == 'new':
                         node = self.TransferRowToNode(y)
-                        self.companyData.AddNode(node)
+                        
+                        self.database.AddNode(node)
                         log.SetAddFile (node)
+                        CD_FileAccess.CreateCompanyFolder (node.GetName())
                         
                     elif self.table.EntryStatusGet (0, y) == 'remove':
-                        name = self.table.EntryTextGet (0, y)
                         node = self.TransferRowDefaultToNode(y)
-                        self.companyData.RemoveNode (name)
+                        name = node.GetName ()
+                        
+                        self.database.RemoveNode (name)
                         log.SetRemoveFile (node)
+                        CD_FileAccess.RemoveCompanyFolder (nmae)
                         
                     else:
                         for x in range (self.table.GetColumnNumber()):
                             if self.table.EntryStatusGet (x, y) == 'modify':
-                                name = self.table.EntryDefaultGet (0, y)
                                 preNode = self.TransferRowDefaultToNode(y)
                                 postNode = self.TransferRowToNode(y)
+                                name = preNode.GetName()
 
-                                self.companyData.ModifyNode (name, postNode)
+                                self.database.ModifyNode (name, postNode)
                                 log.SetModifyFile (preNode, postNode)
+                                os.rename ('database/' + preNode.GetName(), 'database/' + postNode.GetName(), )
                                 break
 
                 #
                 # 4. Save database to hard drive
                 #
-                CD_FileAccess.ExportCompany(self.CompanyName, self.companyData)
+                CD_FileAccess.ExportCompany(self.database)
                 log.AddLog()
                 logging.info ('Modify product file success!\n')
                 self.destroy()
@@ -714,22 +583,18 @@ class GuiAddToDatabase (tk.Frame):
     # Transfer specific node into class ProductNode
     #
     def TransferRowToNode(self, row):
-        node = link.ProductNode()
+        node = link.CompanyNode()
 
         node.Name.SetData (self.table.EntryTextGet (0, row))
         node.Code.SetData (self.table.EntryTextGet (1, row))
-        node.Price.SetData (self.table.EntryTextGet (2, row))
-        node.comment = self.table.EntryTextGet (4, row)
 
         return node
     
     def TransferRowDefaultToNode(self, row):
-        node = link.ProductNode()
+        node = link.CompanyNode()
 
         node.Name.SetData (self.table.EntryDefaultGet (0, row))
         node.Code.SetData (self.table.EntryDefaultGet (1, row))
-        node.Price.SetData (self.table.EntryDefaultGet (2, row))
-        node.comment = self.table.EntryDefaultGet (4, row)
 
         return node
 
@@ -752,17 +617,10 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.geometry ('800x600+100+100')
     Database = CorporateDatabaseMain.LoadDatabase()
-    a = GuiAddToDatabase(root, Database)
+    a = GuiCompanyModify(root, Database)
     a.pack (side = 'top', fill = 'both', expand = True)
 
     for i in range (0):
         a.table.AddNewRow()
-
-
-    b=tk.Button (
-            root,
-            text = '儲存:',
-            bg = '#AA88AA'
-            ).pack()
     
     root.mainloop()

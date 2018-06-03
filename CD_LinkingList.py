@@ -1,9 +1,8 @@
-import os
 import logging
 
 ## Linking list
 #
-# pre =previous
+# pre  = previous
 # peri = period
 #
 # Company
@@ -148,20 +147,16 @@ class ProductList (object):
             preNode = periNode
             periNode = periNode.GetNext()
 
+        logging.warning('RemoveNode:')
+        logging.warning('  Company : %s' %self.companyName)
+        logging.warning('  Product : %s' %removeNodeNmae)
         #
         # If specific node is not found.
         #
         if periNode == None:
-            logging.warning('RemoveNode:')
-            logging.warning('  Company : %s' %self.companyName)
-            logging.warning('  Product : %s' %removeNodeNmae)
             logging.warning('The node want to remove is not exist.')
             return False
-
         else:
-            logging.info('RemoveNode:')
-            logging.info('  Company : %s' %self.companyName)
-            logging.info('  Product : %s' %removeNodeNmae)
             logging.info('The node remove successfully.')
             return True
 
@@ -170,11 +165,11 @@ class ProductList (object):
     # It must to consider that modify picture name when modify product name.
     #
     # @oriProductName  Product name of modify node
-    # @modNode         
+    # @modifyNode         
     #
-    def ModifyNode (self, oriProductName, modNode):
+    def ModifyNode (self, oriProductName, modifyNode):
         assert isinstance(oriProductName, str)
-        assert isinstance(modNode, ProductNode)
+        assert isinstance(modifyNode, ProductNode)
 
         #
         # Remove original node and add modify node.
@@ -183,8 +178,8 @@ class ProductList (object):
                     
             logging.info('AddNode:')
             logging.info('  Company : %s' %self.companyName)
-            logging.info('  Product : %s' %modNode.GetName())
-            self.AddNode (modNode)
+            logging.info('  Product : %s' %modifyNode.GetName())
+            self.AddNode (modifyNode)
         
     #
     # Find specific ProductNode by product name.
@@ -231,6 +226,12 @@ class CompanyNode (object):
         
         self.Name.SetData (Name)
         self.Code.SetData (Code)
+        
+    def GetNext(self):
+        return self.Name.GetNextNode ()
+        
+    def GetName(self):
+        return self.Name.GetData ()
 
 class CompanyList (object):
     def __init__(self):
@@ -240,49 +241,101 @@ class CompanyList (object):
     def IsEmpty (self):
         return self.Header.CompanyName.NextNode == None
     
-    def GetHeader(self):
-        return self.Header
+    def GetFirst (self):
+        return self.Header.Name.GetNextNode()
     
-    def NewCompanyNode(self, Name = 'NULL', Code = 'NULL'):
-        assert isinstance(Name, str)
-        assert isinstance(Code, str)
+    def AddNode (self, newNode):
+        assert isinstance(newNode, CompanyNode)
         
         self.TotalNodeNumber += 1
-        NewNode = CompanyNode (Name, Code)
     
         #
         # Add Name List
         #
-        PreNode = self.Header
-        CurrentNode = self.Header.Name.GetNextNode()
+        preNode = self.Header
+        periNode = self.Header.Name.GetNextNode()
         
-        while CurrentNode != None:
+        while periNode != None:
             
-            if CurrentNode.Name.GetData() > NewNode.Name.GetData():
+            if periNode.GetName() > newNode.GetName():
                 break
             else:
-                PreNode = CurrentNode
-                CurrentNode = CurrentNode.Name.GetNextNode()
+                preNode = periNode
+                periNode = periNode.GetNext()
         
-        NewNode.Name.SetNextNode (CurrentNode)
-        PreNode.Name.SetNextNode (NewNode)
+        newNode.Name.SetNextNode (periNode)
+        preNode.Name.SetNextNode (newNode)
     
         #
         # Add Code List
         #
-        PreNode = self.Header
-        CurrentNode = self.Header.Code.GetNextNode()
+        preNode = self.Header
+        periNode = self.Header.Code.GetNextNode()
         
-        while CurrentNode != None:
+        while periNode != None:
             
-            if CurrentNode.Code.GetData() > NewNode.Code.GetData():
+            if periNode.Code.GetData() > newNode.Code.GetData():
                 break
             else:
-                PreNode = CurrentNode
-                CurrentNode = CurrentNode.Code.GetNextNode()
+                preNode = periNode
+                periNode = periNode.Code.GetNextNode()
         
-        NewNode.Code.SetNextNode (CurrentNode)
-        PreNode.Code.SetNextNode (NewNode)
+        newNode.Code.SetNextNode (periNode)
+        preNode.Code.SetNextNode (newNode)
+    
+    #
+    # @removeNodeName the remove node product name
+    #
+    # @return  True   Node remove successfully
+    # @return  False  Node remove failed.
+    #
+    def RemoveNode (self, removeNodeName):
+        assert isinstance(removeNodeName, str)
+
+        preNode = self.Header
+        periNode = preNode.GetNext()
+
+        while periNode != None:
+            if periNode.Name.GetData() == removeNodeName:
+                preNode.Name.SetNextNode (periNode.Name.GetNextNode ())
+                preNode.Code.SetNextNode (periNode.Code.GetNextNode ())
+                break
+
+            preNode = periNode
+            periNode = periNode.GetNext()
+
+        logging.info('RemoveNode:')
+        logging.info('  Company : %s' %removeNodeName)
+        #
+        # If specific node is not found.
+        #
+        if periNode == None:
+            logging.warning('The node want to remove is not exist.')
+            return False
+        else:
+            logging.info('The node remove successfully.')
+            return True
+
+    #
+    # Note! This function will not modify picture in the database.
+    # It must to consider that modify picture name when modify product name.
+    #
+    # @oriProductName  Product name of modify node
+    # @modifyNode         
+    #
+    def ModifyNode (self, oriCompanyName, modifyNode):
+        assert isinstance(oriCompanyName, str)
+        assert isinstance(modifyNode, CompanyNode)
+        
+        node = self.FindCompany (oriCompanyName)
+        
+        if node != None:
+            node.Name.SetData (modifyNode.Name.GetData())
+            node.Code.SetData (modifyNode.Code.GetData())
+            
+            logging.info('Modify Company Node:')
+            logging.info('    %s => %s' %node.Name.GetData() %modifyNode.Name.GetData())
+            logging.info('    %s => %s' %node.Code.GetData() %modifyNode.Code.GetData())
 
     #
     # If company code exist return company name, else return None
@@ -386,13 +439,18 @@ if __name__ == '__main__':
     L.Print()
     
     L1 = CompanyList()
-    L1.NewCompanyNode('CompanyA', 'aaa')
-    L1.NewCompanyNode('CompanyC', 'ccc')
-    L1.NewCompanyNode('CompanyE', 'eee')
+    LL1 = CompanyNode ('CompanyA', 'aaa')
+    L1.AddNode(LL1)
+    LL1 = CompanyNode ('CompanyC', 'ccc')
+    L1.AddNode(LL1)
+    LL1 = CompanyNode ('CompanyE', 'eee')
+    L1.AddNode(LL1)
     L1.Print()
     
-    L1.NewCompanyNode('CompanyB', 'bbb')
-    L1.NewCompanyNode('CompanyD', 'ddd')
+    LL1 = CompanyNode ('CompanyB', 'bbb')
+    L1.AddNode(LL1)
+    LL1 = CompanyNode ('CompanyD', 'ddd')
+    L1.AddNode(LL1)
     L1.Print()
     
     print ('--------- CA_LinkingList.py  End ---------')

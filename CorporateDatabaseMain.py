@@ -5,8 +5,8 @@ from PIL import Image,ImageTk
 from tkinter import messagebox
 
 import CD_GuiDataDisplayTable
-import CD_GuiDataModifyTable
-import CD_GuiEntryMenu
+import CD_GuiProductModify
+import CD_GuiCompanyModify
 import CD_LinkingList
 
 #
@@ -65,30 +65,30 @@ def LoadDatabase():
     # First, load all company list.
     #
     try:
-        RootFile = open ('database/TotalCompanyList.txt', 'r')
+        rootFile = open ('database/TotalCompanyList.txt', 'r')
     except FileNotFoundError:
         print ('WARNING! No database exist!!!!!')
         raise
 
-    CompanyList1 = CD_LinkingList.CompanyList()
-    for EachLine in RootFile:
-        StrList = EachLine.split ('|')
+    database = CD_LinkingList.CompanyList()
+    for eachLine in rootFile:
+        strList = eachLine.split ('|')
         
-        if StrList[0] == '@':
+        if strList[0] == '@':
 
             #
             # StrList[1].strip() : Company name
             # StrList[2].strip() : Company code
             #
-            CompanyList1.NewCompanyNode (StrList[1].strip(), StrList[2].strip())
+            companyNode = CD_LinkingList.CompanyNode(strList[1].strip(), strList[2].strip())
+            database.AddNode (companyNode)
 
-    #CompanyList1.Print()  ## Test
-    RootFile.close()
+    rootFile.close()
 
     #
     # Second, load all company data according to company list.
     #
-    CurrentCompany = CompanyList1.Header.Name.GetNextNode()
+    CurrentCompany = database.Header.Name.GetNextNode()
 
     while CurrentCompany != None:
         CompanyPath = 'database/' + CurrentCompany.Name.GetData() + '/'
@@ -130,17 +130,134 @@ def LoadDatabase():
 
         CurrentCompany = CurrentCompany.Name.GetNextNode()
     
-    return CompanyList1
+    return database
 
-def SwitchToModify (root, Database):
-    menu = CD_GuiDataModifyTable.GuiAddToDatabase (root, Database)
-    menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
-    menu.tkraise ()
-def SwitchToSearch (root, Database):
-    menu = CD_GuiDataDisplayTable.DataDisplayMenu (root, Database)
+def SwitchToModify (root, database):
+    menu = CD_GuiProductModify.GuiProductModify (root, database)
     menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
     menu.tkraise ()
     
+def SwitchToModifyCompany (root, database):
+    menu = CD_GuiCompanyModify.GuiCompanyModify (root, database)
+    menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+    menu.tkraise ()
+    
+def SwitchToSearch (root, database):
+    menu = CD_GuiDataDisplayTable.DataDisplayMenu (root, database)
+    menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+    menu.tkraise ()
+ 
+#
+# GUI of application entry menu.
+#
+class EntryMenu (tk.Frame):
+    def __init__(self, Parent):
+        tk.Frame.__init__(self, Parent)
+        self.rowconfigure(0, weight = 50)
+        self.rowconfigure(1, weight = 1)
+        self.columnconfigure(0, weight = 1)
+        
+        #
+        # Load data from database as linking list.
+        # Insert data to display table
+        #
+        Database = LoadDatabase()
+        
+        #
+        # Frame
+        #
+        self.FrameMainTop = tk.Frame(
+            self,
+            borderwidth = 3,
+            relief=tk.SUNKEN,
+            bg = '#D8E5f3'
+            )
+        
+        self.FrameMainBottom = tk.Frame(
+            self,
+            borderwidth = 3,
+            relief=tk.SUNKEN,
+            bg = '#D8E5f3'
+            )
+        
+        self.FrameMainTop.grid (row=0, column=0, rowspan=1, sticky='news')
+        self.FrameMainBottom.grid (row=1, column=0, rowspan=1, sticky='news')
+        self.update()
+        
+        #
+        # Layout grid configure
+        #
+        self.FrameMainTop.rowconfigure(0, weight = 1)
+        self.FrameMainTop.columnconfigure(0, weight = 1)
+        self.FrameMainBottom.rowconfigure(0, weight = 1)
+        self.FrameMainBottom.columnconfigure(0, weight = 1)
+        self.FrameMainBottom.columnconfigure(1, weight = 1)
+        self.FrameMainBottom.columnconfigure(2, weight = 1)
+        self.FrameMainBottom.columnconfigure(3, weight = 1)
+        
+        #
+        # Button
+        #
+        self.ButtonModifyCompany = tk.Button (
+            self.FrameMainBottom,
+            text = '修改(公司)',
+            font = ('標楷體', 14),
+            bg = '#6899CA',
+            width=1,
+            command = lambda: SwitchToModifyCompany (root, Database)
+            )
+        self.ButtonModifyProduct = tk.Button (
+            self.FrameMainBottom,
+            text = '修改(產品)',
+            font = ('標楷體', 14),
+            bg = '#6899CA',
+            width=1,
+            command = lambda: SwitchToModify (root, Database)
+            )
+        
+        self.ButtonSearch = tk.Button (
+            self.FrameMainBottom,
+            text = '查詢',
+            font = ('標楷體', 14),
+            bg = '#6899CA',
+            width=1,
+            command = lambda: SwitchToSearch (root, Database)
+            )
+        
+        self.ButtonExit = tk.Button (
+            self.FrameMainBottom,
+            text = '離開',
+            font = ('標楷體', 14),
+            bg = '#6899CA',
+            width=1,
+            command=lambda: Parent.destroy ()
+            )    
+
+        self.ButtonModifyCompany.grid (row=0, column=0, sticky='news', padx=1, pady=1)
+        self.ButtonModifyProduct.grid (row=0, column=1, sticky='news', padx=1, pady=1)
+        self.ButtonSearch.grid (row=0, column=2, sticky='news', padx=1, pady=1)
+        self.ButtonExit.grid (row=0, column=3, sticky='news', padx=1, pady=1)
+        self.update()
+
+        #
+        # Entry image
+        #
+        ModifySize = (600, 400)
+        self.EntryPhotoOriginal = Image.open ('image/EntryImage.png')
+        self.EntryPhotoResize = self.EntryPhotoOriginal.resize (
+            ModifySize,
+            Image.ANTIALIAS
+            )
+        self.EntryPhotoTkImage = ImageTk.PhotoImage (self.EntryPhotoResize)
+
+        self.LabelEntryImage = tk.Label (
+            self.FrameMainTop,
+            bg = '#FFFFFF',
+            image = self.EntryPhotoTkImage
+            )
+        self.LabelEntryImage.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+        
+
 #
 # Run main
 #
@@ -167,14 +284,8 @@ if __name__ == '__main__':
     root.title ('Corporate Database')
     root.rowconfigure(0, weight = 1)
     root.columnconfigure(0, weight = 1)
-    
-    #
-    # Load data from database as linking list.
-    # Insert data to display table
-    #
-    Database = LoadDatabase()
 
-    MenuMain = CD_GuiEntryMenu.EntryMenu (root)
+    MenuMain = EntryMenu (root)
 
     #
     # Draw Main menu GUI
@@ -182,12 +293,6 @@ if __name__ == '__main__':
     MenuMain.grid (row=0, column=0, sticky='news', padx=5, pady=5)
     MenuMain.tkraise ()
 
-    #
-    # Menu switch related callback.
-    #
-    MenuMain.ButtonModify.config (command = lambda: SwitchToModify (root, Database))
-    MenuMain.ButtonSearch.config (command = lambda: SwitchToSearch (root, Database))
-    
     root.mainloop()
 
     print ("==== GUI  End  ====")

@@ -69,7 +69,71 @@ class HistoryLog(object):
         string += '\n'
 
         return string
+class CompanyHistoryLog(object):
+    def __init__(self):
+        
+        self.fileName = 'database/History.log'
+        self.company = 'Database'
+        self.addFile = '\n'
+        self.removeFile = '\n'
+        self.modifyFile = '\n'
+        
+        if not os.path.isdir('database'):
+            os.mkdir('database')
 
+        if not os.path.exists (self.fileName):
+            logging.info ('New %s create.' %self.fileName)
+            file = open (self.fileName, 'w')
+            timeNow = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            
+            file.write ('Time : %s\n' %timeNow)
+            file.write ('Company : \n')
+            file.write ('Add : %s\n' %self.fileName)
+            file.write ('Remove : \n')
+            file.write ('Modify : \n')
+            file.close()
+        
+    def SetAddFile (self, companyNode):
+        assert isinstance (companyNode, link.CompanyNode)
+        self.addFile += self.ObjectToString (companyNode)
+        
+    def SetRemoveFile (self, companyNode):
+        assert isinstance (companyNode, link.CompanyNode)
+        self.removeFile += self.ObjectToString (companyNode)
+        
+    def SetModifyFile (self, preNode, postNode):
+        assert isinstance (preNode, link.CompanyNode)
+        assert isinstance (postNode, link.CompanyNode)
+
+        preString = self.ObjectToString (preNode)
+        postString = self.ObjectToString (postNode)
+        self.modifyFile += preString + '  =>' + postString
+        
+    def AddLog (self):
+        file = open (self.fileName, 'a')
+        timeNow = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+        for i in range(50):
+            file.write ('*')
+        file.write ('\nTime : %s\n' %timeNow)
+        file.write ('Company : %s\n' %self.company)
+        file.write ('Add :')
+        file.write ('%s' %self.addFile)
+        file.write ('Remove :')
+        file.write ('%s' %self.removeFile)
+        file.write ('Modify :')
+        file.write ('%s' %self.modifyFile)
+        file.write ('\n')
+        file.close()
+
+    def ObjectToString(self, companyNode):
+        string = '    '
+        string += '%-20s' %companyNode.Name.GetData() + '| '
+        string += '%-10s' %companyNode.Code.GetData() + '| '
+        string += '\n'
+
+        return string
+        
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     
