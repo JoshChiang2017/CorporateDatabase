@@ -751,7 +751,7 @@ if __name__ == '__main__':
     
     root = tk.Tk()
     root.geometry ('800x600+100+100')
-    Database = CorporateDatabaseMain.LoadDatabase()
+    Database = CD_FileAccess.LoadDatabase()
     a = GuiProductModify(root, Database)
     a.pack (side = 'top', fill = 'both', expand = True)
 

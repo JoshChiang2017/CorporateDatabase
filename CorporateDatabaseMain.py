@@ -7,7 +7,24 @@ from tkinter import messagebox
 import CD_GuiDataDisplayTable
 import CD_GuiProductModify
 import CD_GuiCompanyModify
+import CD_FileAccess
 import CD_LinkingList
+
+#
+# Begin a new database.
+#
+def InitDatabase():
+    dataBaseName = 'database'
+    if not os.path.isdir(dataBaseName):
+        logging.info ('Create New Database.')
+        os.mkdir(dataBaseName)
+        
+        file = open (dataBaseName + '/TotalCompanyList.txt', 'w')
+        file.write ('%1s' % '' + '| ' + '%-20s' % 'CompanyName' + '| ' + '%-20s' % 'CompanyCode' +'|\n')
+        for i in range (50):
+            file.write ('=')
+        file.write ('\n')
+        file.close()
 
 #
 # Check if nesseary file is prepared.
@@ -54,88 +71,13 @@ def InitialCheck():
 
     return Check
 
-# 
-# Load database and record to linking list
-#
-# @RETURN Database linking list.
-#
-def LoadDatabase():
-
-    #
-    # First, load all company list.
-    #
-    try:
-        rootFile = open ('database/TotalCompanyList.txt', 'r')
-    except FileNotFoundError:
-        print ('WARNING! No database exist!!!!!')
-        raise
-
-    database = CD_LinkingList.CompanyList()
-    for eachLine in rootFile:
-        strList = eachLine.split ('|')
-        
-        if strList[0] == '@':
-
-            #
-            # StrList[1].strip() : Company name
-            # StrList[2].strip() : Company code
-            #
-            companyNode = CD_LinkingList.CompanyNode(strList[1].strip(), strList[2].strip())
-            database.AddNode (companyNode)
-
-    rootFile.close()
-
-    #
-    # Second, load all company data according to company list.
-    #
-    CurrentCompany = database.Header.Name.GetNextNode()
-
-    while CurrentCompany != None:
-        CompanyPath = 'database/' + CurrentCompany.Name.GetData() + '/'
-        CompanyProductFile = CompanyPath + CurrentCompany.Name.GetData() + '.txt'
-
-        if not os.path.exists(CompanyProductFile):
-            print ('WARNING! No company data exist!!!!! (%s)' % CompanyProductFile)
-            
-        else:
-            logging.info (CompanyProductFile)
-            File = open (CompanyProductFile, 'r')
-
-            ProductList1 = CurrentCompany.ProductListHeader
-            ProductNode1 = CD_LinkingList.ProductNode()
-
-            for EachLine in File:
-                StrList = EachLine.split ('|')
-                
-                if StrList[0] == '@':
-                    ProductNode1.Name.SetData (StrList[1].strip())
-                    ProductNode1.Code.SetData (StrList[2].strip())
-                    ProductNode1.Price.SetData (StrList[3].strip())
-
-                    #
-                    # Open simple picture according to product name.
-                    #
-                    PicName = CompanyPath + ProductNode1.Name.GetData() + '_Simple.png'
-                    
-                    if os.path.exists(PicName):
-                        im = Image.open(PicName)
-                        imTk = ImageTk.PhotoImage(im)
-                        im.close()
-                    else:
-                        imTk = None
-                        
-                    ProductNode1.Image = imTk
-                    ProductList1.AddNode(ProductNode1)
-            File.close()
-
-        CurrentCompany = CurrentCompany.Name.GetNextNode()
-    
-    return database
-
 def SwitchToModify (root, database):
-    menu = CD_GuiProductModify.GuiProductModify (root, database)
-    menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
-    menu.tkraise ()
+    if database.IsEmpty() is False:
+        menu = CD_GuiProductModify.GuiProductModify (root, database)
+        menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+        menu.tkraise ()
+    else:
+        messagebox.showinfo('INFO', 'There are no data in database.')
     
 def SwitchToModifyCompany (root, database):
     menu = CD_GuiCompanyModify.GuiCompanyModify (root, database)
@@ -143,9 +85,12 @@ def SwitchToModifyCompany (root, database):
     menu.tkraise ()
     
 def SwitchToSearch (root, database):
-    menu = CD_GuiDataDisplayTable.DataDisplayMenu (root, database)
-    menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
-    menu.tkraise ()
+    if database.IsEmpty() is False:
+        menu = CD_GuiDataDisplayTable.DataDisplayMenu (root, database)
+        menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+        menu.tkraise ()
+    else:
+        messagebox.showinfo('INFO', 'There are no data in database.')
  
 #
 # GUI of application entry menu.
@@ -153,16 +98,25 @@ def SwitchToSearch (root, database):
 class EntryMenu (tk.Frame):
     def __init__(self, Parent):
         tk.Frame.__init__(self, Parent)
-        self.rowconfigure(0, weight = 50)
-        self.rowconfigure(1, weight = 1)
-        self.columnconfigure(0, weight = 1)
+        InitDatabase()
+        
+        #
+        # Check necessary file before app application start.
+        #
+        if InitialCheck () == False:
+            raise
         
         #
         # Load data from database as linking list.
         # Insert data to display table
         #
-        Database = LoadDatabase()
+        Database = CD_FileAccess.LoadDatabase()
+        if Database == None:
+            raise
         
+        self.rowconfigure(0, weight = 50)
+        self.rowconfigure(1, weight = 1)
+        self.columnconfigure(0, weight = 1)
         #
         # Frame
         #
@@ -273,7 +227,7 @@ if __name__ == '__main__':
     #   DEBUG
     #   NOTSET
     #
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO)
     
     #
     # Initalize root window

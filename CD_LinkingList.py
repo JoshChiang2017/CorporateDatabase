@@ -239,7 +239,7 @@ class CompanyList (object):
         self.TotalNodeNumber = 0
 
     def IsEmpty (self):
-        return self.Header.CompanyName.NextNode == None
+        return self.Header.Name.GetNextNode() == None
     
     def GetFirst (self):
         return self.Header.Name.GetNextNode()

@@ -138,15 +138,16 @@ class DataDisplayMenu (tk.Frame):
             )
         self.ButtonBackToMain.grid()
 
-        #
-        # Focus on first item in the treeview.
-        #
-        self.DisplayTable.tree.selection_set (self.DisplayTable.tree.get_children()[0]) # highlight first item in treeview
-        
-        self.DisplayTable.tree.focus_set() # set focus to treeview
-        self.DisplayTable.tree.focus(self.DisplayTable.tree.get_children()[0]) #set focus to item
-        
-        self.TreeviewSimplePictureDisplay()
+        if self.Database.IsEmpty() is False:
+            #
+            # Focus on first item in the treeview.
+            #
+            self.DisplayTable.tree.selection_set (self.DisplayTable.tree.get_children()[0]) # highlight first item in treeview
+            
+            self.DisplayTable.tree.focus_set() # set focus to treeview
+            self.DisplayTable.tree.focus(self.DisplayTable.tree.get_children()[0]) #set focus to item
+            
+            self.TreeviewSimplePictureDisplay()
     
     #
     # Clakback function of display simple picture from treeview selected item.

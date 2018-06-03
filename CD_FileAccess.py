@@ -1,5 +1,7 @@
 import os
 import shutil
+import logging
+from PIL import Image,ImageTk
 import CD_LinkingList as link
 
 def CreateCompanyFolder (companyName):
@@ -96,6 +98,84 @@ def ExportCompany (companyList):
         currentNode = currentNode.GetNext()
         
     file.close()
+
+# 
+# Load database and record to linking list
+#
+# @RETURN Database linking list.
+#
+def LoadDatabase():
+
+    #
+    # First, load all company list.
+    #
+    try:
+        rootFile = open ('database/TotalCompanyList.txt', 'r')
+    except FileNotFoundError:
+        print ('WARNING! No database exist!!!!!')
+        raise
+
+    database = link.CompanyList()
+    for eachLine in rootFile:
+        strList = eachLine.split ('|')
+        
+        if strList[0] == '@':
+
+            #
+            # StrList[1].strip() : Company name
+            # StrList[2].strip() : Company code
+            #
+            companyNode = link.CompanyNode(strList[1].strip(), strList[2].strip())
+            database.AddNode (companyNode)
+
+    rootFile.close()
+
+    #
+    # Second, load all company data according to company list.
+    #
+    CurrentCompany = database.Header.Name.GetNextNode()
+
+    while CurrentCompany != None:
+        CompanyPath = 'database/' + CurrentCompany.Name.GetData() + '/'
+        CompanyProductFile = CompanyPath + CurrentCompany.Name.GetData() + '.txt'
+
+        if not os.path.exists(CompanyProductFile):
+            print ('WARNING! No company data exist!!!!! (%s)' % CompanyProductFile)
+            
+        else:
+            logging.info (CompanyProductFile)
+            File = open (CompanyProductFile, 'r')
+
+            ProductList1 = CurrentCompany.ProductListHeader
+            ProductNode1 = link.ProductNode()
+
+            for EachLine in File:
+                StrList = EachLine.split ('|')
+                
+                if StrList[0] == '@':
+                    ProductNode1.Name.SetData (StrList[1].strip())
+                    ProductNode1.Code.SetData (StrList[2].strip())
+                    ProductNode1.Price.SetData (StrList[3].strip())
+
+                    #
+                    # Open simple picture according to product name.
+                    #
+                    PicName = CompanyPath + ProductNode1.Name.GetData() + '_Simple.png'
+                    
+                    if os.path.exists(PicName):
+                        im = Image.open(PicName)
+                        imTk = ImageTk.PhotoImage(im)
+                        im.close()
+                    else:
+                        imTk = None
+                        
+                    ProductNode1.Image = imTk
+                    ProductList1.AddNode(ProductNode1)
+            File.close()
+
+        CurrentCompany = CurrentCompany.Name.GetNextNode()
+    
+    return database
     
 if __name__ == '__main__':
     a = link.ProductList()
