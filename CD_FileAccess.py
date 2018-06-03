@@ -30,6 +30,63 @@ def CreateCompanyFolder (companyName):
 def RemoveCompanyFolder (companyName):
     folder = 'database/' + companyName
     shutil.rmtree (floder)
+    
+#
+# The function is used to modify picture name or add or modify picture.
+#
+# Only below parameters group can be entered at the same time.
+#     Input : oriName              => Delete picture.
+#     Input : oriName  + modName   => Modify picture name.        => return Tk resized image .
+#     Input : oriName  + picPath   => Add picture of product.
+#
+# @company      Company name of product belong.
+# @oriName      The name before modified product name.
+# @modName      The name of modified product name.
+# @picPath      New picture path.
+#
+def ProductImageModify (company, oriName=None, modName=None, picPath=None):
+    if oriName != None:
+        oriFileName = 'database/' + company + '/' + oriName + '.png'
+        oriFileSimpleName = 'database/' + company + '/' + oriName + '_Simple.png'
+    if modName != None:
+        modFileName = 'database/' + company + '/' + modName + '.png'
+        modFileSimpleName = 'database/' + company + '/' + modName + '_Simple.png'
+    
+    #
+    # Modify picture name.
+    #
+    if   (oriName!=None) and (modName!=None) and (picPath==None):
+        if os.path.exists(oriFileName):
+            os.rename (oriFileName, modFileName)
+            os.rename (oriFileSimpleName, modFileSimpleName)
+        else:
+            logging.warning ('The picture want to rename does not exist.')
+
+    #
+    # Add picture of product.
+    #
+    elif (oriName!=None) and (modName==None) and (picPath!=None):
+        im = Image.open (picPath)
+        imResize = im.resize ((200, 200))
+        imTk = ImageTk.PhotoImage(imResize)
+        
+        if os.path.exists(oriFileName):
+            os.remove (oriFileName)
+            os.remove (oriFileSimpleName)
+        
+        im.save (oriFileName)
+        imResize.save (oriFileSimpleName)
+        return imTk
+        
+    #
+    # Delete picture.
+    #
+    elif (oriName!=None) and (modName==None) and (picPath==None):
+        os.remove (oriFileName)
+        os.remove (oriFileSimpleName)
+    else:
+        logging.warning ('Parameter Error!!')
+        assert False
 
 def ExportProduct (companyName, productList):
     assert isinstance(productList, link.ProductList)

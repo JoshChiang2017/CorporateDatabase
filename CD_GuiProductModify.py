@@ -204,6 +204,9 @@ class Table (tk.Frame):
                 )
             entry.pack(side='left', fill='x', expand=True)
             
+            #
+            # Record default value.
+            #
             ItemX.append ([entry, Status, Data[Index]])
             
             entry.bind ('<Return>', self.EnterKeyCallback)
@@ -682,25 +685,63 @@ class GuiProductModify (tk.Frame):
                 for y in range (self.table.GetMaxRow()):
                     if self.table.EntryStatusGet (0, y) == 'new':
                         node = self.TransferRowToNode(y)
+                        name = node.GetName()
+                        #
+                        # Valid path need to remove flag '@'
+                        #
+                        picPath = self.table.EntryTextGet (3, y).lstrip ('@')
+                        
+                        #
+                        # Add picture.
+                        #
+                        tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
+                        node.Image = tkImage
+                        
                         self.companyData.AddNode(node)
                         log.SetAddFile (node)
                         
                     elif self.table.EntryStatusGet (0, y) == 'remove':
-                        name = self.table.EntryTextGet (0, y)
                         node = self.TransferRowDefaultToNode(y)
+                        name = node.GetName()
+                        
                         self.companyData.RemoveNode (name)
                         log.SetRemoveFile (node)
                         
+                        #
+                        # Remove picture.
+                        #
+                        CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name)
+                        
                     else:
+                        modifyFlag = False
                         for x in range (self.table.GetColumnNumber()):
                             if self.table.EntryStatusGet (x, y) == 'modify':
-                                name = self.table.EntryDefaultGet (0, y)
-                                preNode = self.TransferRowDefaultToNode(y)
-                                postNode = self.TransferRowToNode(y)
-
-                                self.companyData.ModifyNode (name, postNode)
-                                log.SetModifyFile (preNode, postNode)
+                                modifyFlag = True
                                 break
+                                
+                        if modifyFlag == True:
+                            preNode = self.TransferRowDefaultToNode(y)
+                            postNode = self.TransferRowToNode(y)
+                            name = preNode.GetName()
+                            modName = postNode.GetName()
+                            
+                            #
+                            # Rename picture if modify product name.
+                            #
+                            if self.table.EntryStatusGet (0, y) == 'modify':
+                                CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, modName=modName)
+                            
+                            #
+                            # Modify picture of product.
+                            #
+                            if self.table.EntryStatusGet (3, y) == 'modify':
+                                tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
+                                postNode.Image = tkImage
+                                
+                            self.companyData.ModifyNode (name, postNode)
+                            log.SetModifyFile (preNode, postNode)
+                                
+
 
                 #
                 # 4. Save database to hard drive
