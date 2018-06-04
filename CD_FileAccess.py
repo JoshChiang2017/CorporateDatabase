@@ -204,12 +204,12 @@ def LoadDatabase():
             File = open (CompanyProductFile, 'r')
 
             ProductList1 = CurrentCompany.ProductListHeader
-            ProductNode1 = link.ProductNode()
 
             for EachLine in File:
                 StrList = EachLine.split ('|')
                 
                 if StrList[0] == '@':
+                    ProductNode1 = link.ProductNode()
                     ProductNode1.Name.SetData (StrList[1].strip())
                     ProductNode1.Code.SetData (StrList[2].strip())
                     ProductNode1.Price.SetData (StrList[3].strip())
@@ -227,6 +227,8 @@ def LoadDatabase():
                         imTk = None
                         
                     ProductNode1.Image = imTk
+                    ProductNode1.comment = (StrList[4].strip())
+                    
                     ProductList1.AddNode(ProductNode1)
             File.close()
 

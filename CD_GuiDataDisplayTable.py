@@ -14,7 +14,7 @@ class DataTable (tk.Frame):
         #
         # Initialize Treeview
         #
-        self.AllColumn = ('CompanyName','ProductName','ProductCode', 'ProductPrice')
+        self.AllColumn = ('CompanyName','ProductName','ProductCode', 'ProductPrice', 'ProductComment')
         self.A_Column = self.AllColumn
 
         self.tree = ttk.Treeview(
@@ -26,16 +26,18 @@ class DataTable (tk.Frame):
                 )
         self.tree.pack(side='left', fill='both', expand=True)
 
-        self.tree.column ('CompanyName', anchor = 'w', width = 200)
-        self.tree.column ('ProductName', anchor = 'w', width = 200)
-        self.tree.column ('ProductCode', anchor = 'w', width = 100)
+        self.tree.column ('CompanyName', anchor = 'w', width = 100)
+        self.tree.column ('ProductName', anchor = 'w', width = 100)
+        self.tree.column ('ProductCode', anchor = 'w', width = 50)
         self.tree.column ('ProductPrice', anchor = 'e', width = 50)
+        self.tree.column ('ProductComment', anchor = 'w', width = 200)
 
         
         self.tree.heading ('CompanyName', text = '公司')
         self.tree.heading ('ProductName', text = '品名')
         self.tree.heading ('ProductCode', text = '代碼')
         self.tree.heading ('ProductPrice', text = '單價')
+        self.tree.heading ('ProductComment', text = '附註')
 
         #
         # Initialize scrollbar
@@ -87,7 +89,8 @@ class DataDisplayMenu (tk.Frame):
                         CurrentCompany.Name.GetData(),
                         CurrentProduct.Name.GetData(),
                         CurrentProduct.Code.GetData(),
-                        CurrentProduct.Price.GetData()
+                        CurrentProduct.Price.GetData(),
+                        CurrentProduct.comment
                         ))
                 CurrentProduct = CurrentProduct.Name.GetNextNode()
             CurrentCompany = CurrentCompany.Name.GetNextNode()
@@ -112,6 +115,8 @@ class DataDisplayMenu (tk.Frame):
         self.DisplayTable.tree.bind("<KeyRelease-Up>", self.TreeviewSimplePictureCalkback)
         self.DisplayTable.tree.bind("<ButtonRelease-1>", self.TreeviewSimplePictureCalkback)
         self.DisplayTable.tree.bind("<Return>", self.TreeviewReturnCalkback)
+        self.bind_all ('<Control-Key-Q>', lambda event: self.Exit())
+        self.bind_all ('<Control-Key-q>', lambda event: self.Exit())
 
         #
         # Search relate control
@@ -119,8 +124,6 @@ class DataDisplayMenu (tk.Frame):
         self.SearchFrame = tk.Frame (
             self,
             borderwidth = 5,
-            #height = 100,
-            #width = 150,
             relief=tk.SUNKEN,
             bg = '#D8E5f3'
             )
@@ -131,10 +134,9 @@ class DataDisplayMenu (tk.Frame):
         #
         self.ButtonBackToMain = tk.Button (
             self.SearchFrame,
-            text = '回主畫面',
-            font = ('Arial', 12),
+            text = '回主畫面(Q)',
             bg = '#6899CA',
-            command = lambda: self.destroy ()
+            command = lambda: self.Exit ()
             )
         self.ButtonBackToMain.grid()
 
@@ -188,6 +190,11 @@ class DataDisplayMenu (tk.Frame):
         CurrentProductNode = self.Database.FindProduct (CurrentSelectValue[0], CurrentSelectValue[1])
         if CurrentProductNode.Image != None:
             os.startfile(os.getcwd() + '/database/' + CurrentSelectValue[0] + '/' + CurrentSelectValue[1] + '.png')
+            
+    def Exit(self):
+        self.destroy()
+        self.unbind_all ('<Control-Key-Q>')
+        self.unbind_all ('<Control-Key-q>')
 
 
 if __name__ == '__main__':

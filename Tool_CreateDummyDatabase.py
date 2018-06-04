@@ -81,7 +81,7 @@ file = open (DataBaseName + '/' + Company + '/' + Company + '.txt', 'w')
 #
 # Header of company.
 #
-file.write ('%1s' % '' + '| ' + '%-20s' % 'Name' + '| ' + '%-10s' % 'Code' + '| ' + '%5s' % 'Price' + '|\n')
+file.write ('%1s' % '' + '| ' + '%-20s' % 'Name' + '| ' + '%-10s' % 'Code' + '| ' + '%5s' % 'Price' + '| ' + '%5s' % 'Comment' + '|\n')
 for i in range (50):
     file.write ('=')
 file.write ('\n')
@@ -93,6 +93,7 @@ for i in range (101):
     file.write ('%1s' % '@' + '| ')
     file.write ('%-20s' % ('ProductA' + str(i)) + '| ')
     file.write ('%-10s' % ('A' + str(i)) + '| ')
+    file.write ('%5s' % '' + '|')
     file.write ('%5s' % str(i) + '|')
     file.write ('\n')
 
@@ -109,7 +110,7 @@ file = open (DataBaseName + '/' + Company + '/' + Company + '.txt', 'w')
 #
 # Header of company.
 #
-file.write ('%1s' % '' + '| ' + '%-20s' % 'Name' + '| ' + '%-10s' % 'Code' + '| ' + '%5s' % 'Price' + '|\n')
+file.write ('%1s' % '' + '| ' + '%-20s' % 'Name' + '| ' + '%-10s' % 'Code' + '| ' + '%5s' % 'Price' + '| ' + '%5s' % 'Comment' + '|\n')
 for i in range (50):
     file.write ('=')
 file.write ('\n')
@@ -122,6 +123,7 @@ for i in range (101):
     file.write ('%-20s' % ('ProductB' + str(i)) + '| ')
     file.write ('%-10s' % ('A' + str(i)) + '| ')
     file.write ('%5s' % str(i + 1000) + '|')
+    file.write ('%5s' % '' + '|')
     file.write ('\n')
 file.close()
 
@@ -153,7 +155,7 @@ file = open (DataBaseName + '/' + Company + '/' + Company + '.txt', 'w')
 #
 # Header of company.
 #
-file.write ('%1s' % '' + '| ' + '%-20s' % 'Name' + '| ' + '%-10s' % 'Code' + '| ' + '%5s' % 'Price' + '|\n')
+file.write ('%1s' % '' + '| ' + '%-20s' % 'Name' + '| ' + '%-10s' % 'Code' + '| ' + '%5s' % 'Price' + '| ' + '%5s' % 'Comment' + '|\n')
 for i in range (50):
     file.write ('=')
 file.write ('\n')
@@ -166,6 +168,7 @@ for i in range (50):
     file.write ('%-20s' % ('ProductA' + str(i)) + '| ')
     file.write ('%-10s' % ('A' + str(i)) + '| ')
     file.write ('%5s' % str(i + 2000) + '|')
+    file.write ('%5s' % '' + '|')
     file.write ('\n')
 file.close()
 
@@ -197,7 +200,7 @@ file = open (DataBaseName + '/' + Company + '/' + Company + '.txt', 'w')
 #
 # Header of company.
 #
-file.write ('%1s' % '' + '| ' + '%-20s' % 'Name' + '| ' + '%-10s' % 'Code' + '| ' + '%5s' % 'Price' + '|\n')
+file.write ('%1s' % '' + '| ' + '%-20s' % 'Name' + '| ' + '%-10s' % 'Code' + '| ' + '%5s' % 'Price' + '| ' + '%5s' % 'Comment' + '|\n')
 for i in range (50):
     file.write ('=')
 file.write ('\n')
@@ -210,6 +213,7 @@ for i in range (1, 49, 2):
     file.write ('%-20s' % ('ProductA' + str(i)) + '| ')
     file.write ('%-10s' % ('A' + str(i)) + '| ')
     file.write ('%5s' % str(i + 3000) + '|')
+    file.write ('%5s' % '' + '|')
     file.write ('\n')
 file.close()
 

@@ -549,7 +549,7 @@ class GuiProductModify (tk.Frame):
             else:
                 Data.append ('Y')
 
-            Data.append ('Temp') ##temp print
+            Data.append (CurrentProduct.comment)
 
             CurrentProduct = CurrentProduct.Name.GetNextNode()
             self.table.AddNewRow(Data)
