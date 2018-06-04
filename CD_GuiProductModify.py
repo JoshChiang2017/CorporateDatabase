@@ -585,7 +585,7 @@ class GuiProductModify (tk.Frame):
             #
             # Should not have two same Product name, empty is illegal.
             #
-            if name == '':
+            if (name == '') or (name == 'N/A'):
                 self.table.EntryObjectGet(0, currentRow).config (bg = '#FF3333')
                 nameValid = False
                 LogWarning (currentRow, 'Name invalid (empty).')
@@ -602,7 +602,12 @@ class GuiProductModify (tk.Frame):
             #
             # Should not have two same Code name, empty is legal.
             #
-            if code != '':
+            if code == 'N/A':
+                self.table.EntryObjectGet(1, currentRow).config (bg = '#FF3333')
+                codeValid = False
+                LogWarning (currentRow, 'Code invalid (empty).')
+            
+            elif code != '':
                 for compareRow in range (currentRow+1, rowNumber):
                     if code == self.table.EntryTextGet (1, compareRow):
                         self.table.EntryObjectGet(1, currentRow).config (bg = '#FF3333')

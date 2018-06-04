@@ -474,10 +474,10 @@ class GuiCompanyModify (tk.Frame):
             #
             if code == 'N/A':
                 self.table.EntryObjectGet(1, currentRow).config (bg = '#FF3333')
-                nameValid = False
+                codeValid = False
                 LogWarning (currentRow, 'Code invalid (empty).')
             
-            else:
+            elif code != '':
                 for compareRow in range (currentRow+1, rowNumber):
                     if code == self.table.EntryTextGet (1, compareRow):
                         self.table.EntryObjectGet(1, currentRow).config (bg = '#FF3333')
