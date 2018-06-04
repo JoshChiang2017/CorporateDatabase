@@ -298,7 +298,7 @@ class Table (tk.Frame):
                     else:
                         self.EntryTextSet (self.X, self.Y, 'Y')
 
-                elif self.EntryTextGet(self.X, self.Y)[0] !='@':
+                elif self.EntryTextGet(self.X, self.Y) == '' or self.EntryTextGet(self.X, self.Y)[0] !='@':
                     #
                     # If string start with '@', it is valid.
                     #
@@ -691,16 +691,19 @@ class GuiProductModify (tk.Frame):
                     if self.table.EntryStatusGet (0, y) == 'new':
                         node = self.TransferRowToNode(y)
                         name = node.GetName()
-                        #
-                        # Valid path need to remove flag '@'
-                        #
-                        picPath = self.table.EntryTextGet (3, y).lstrip ('@')
+                        picPath = self.table.EntryTextGet (3, y)
                         
                         #
-                        # Add picture.
+                        # Valid path begin with '@'
                         #
-                        tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
-                        node.Image = tkImage
+                        if picPath[0] == '@':
+                            picPath = picPath.lstrip ('@')
+                            
+                            #
+                            # Add picture.
+                            #
+                            tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
+                            node.Image = tkImage
                         
                         self.companyData.AddNode(node)
                         log.SetAddFile (node)
@@ -740,8 +743,22 @@ class GuiProductModify (tk.Frame):
                             # Modify picture of product.
                             #
                             if self.table.EntryStatusGet (3, y) == 'modify':
-                                tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
-                                postNode.Image = tkImage
+                                picPath = self.table.EntryTextGet (3, y)
+                                
+                                #
+                                # Remove
+                                #
+                                if picPath[0] == 'N' or picPath[0] == 'n':
+                                  tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name)
+                                  postNode.Image = None
+                                
+                                #
+                                # Modify
+                                #
+                                elif picPath[0] == '@':
+                                    picPath = picPath.lstrip ('@')
+                                    tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
+                                    postNode.Image = tkImage
                                 
                             self.companyData.ModifyNode (name, postNode)
                             log.SetModifyFile (preNode, postNode)
@@ -754,7 +771,7 @@ class GuiProductModify (tk.Frame):
                 CD_FileAccess.ExportProduct(self.CompanyName, self.companyData)
                 log.AddLog()
                 logging.info ('Modify product file success!\n')
-                self.destroy()
+                self.Exit()
 
     #
     # Transfer specific node into class ProductNode
@@ -765,6 +782,7 @@ class GuiProductModify (tk.Frame):
         node.Name.SetData (self.table.EntryTextGet (0, row))
         node.Code.SetData (self.table.EntryTextGet (1, row))
         node.Price.SetData (self.table.EntryTextGet (2, row))
+        node.Image = None
         node.comment = self.table.EntryTextGet (4, row)
 
         return node
@@ -781,8 +799,13 @@ class GuiProductModify (tk.Frame):
 
     def Exit(self):
         self.destroy()
+        self.unbind_all ('<MouseWheel>')
         self.unbind_all ('<Next>')
         self.unbind_all ('<Prior>')
+        self.unbind_all ('<Tab>')
+        self.unbind_all ('<Down>')
+        self.unbind_all ('<Shift-Tab>')
+        self.unbind_all ('<Up>')
         self.unbind_all ('<Control-Key-Q>')
         self.unbind_all ('<Control-Key-q>')
         self.unbind_all ('<Control-Key-S>')

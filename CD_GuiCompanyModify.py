@@ -577,7 +577,7 @@ class GuiCompanyModify (tk.Frame):
                 CD_FileAccess.ExportCompany(self.database)
                 log.AddLog()
                 logging.info ('Modify product file success!\n')
-                self.destroy()
+                self.Exit()
 
     #
     # Transfer specific node into class ProductNode
@@ -600,8 +600,13 @@ class GuiCompanyModify (tk.Frame):
 
     def Exit(self):
         self.destroy()
+        self.unbind_all ('<MouseWheel>')
         self.unbind_all ('<Next>')
         self.unbind_all ('<Prior>')
+        self.unbind_all ('<Tab>')
+        self.unbind_all ('<Down>')
+        self.unbind_all ('<Shift-Tab>')
+        self.unbind_all ('<Up>')
         self.unbind_all ('<Control-Key-Q>')
         self.unbind_all ('<Control-Key-q>')
         self.unbind_all ('<Control-Key-S>')
