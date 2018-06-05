@@ -190,7 +190,7 @@ class Table (tk.Frame):
                 width = 5
                 )
             entry.pack(side='left', fill='x')
-            entry.bind ('<Button-1>', self.ExistToRemove)
+            entry.bind ('<Button-1>', self.IndexCallback)
         
         for Index in range(self.ColumnNumber):
             TitleString = tk.StringVar()
@@ -322,13 +322,26 @@ class Table (tk.Frame):
                 if self.EntryObjectGet(i, j) == event.widget:
                     self.FocusAtNewEntry (i, j)
 
-    def ExistToRemove (self, event):
+    def IndexCallback (self, event):
         y = int(event.widget.get())
 
         #
+        # Status : new. Remove whole row.
+        #
+        if self.EntryStatusGet(0, y) == 'new':
+            #
+            # Remove by remove parent of each object in the row.
+            # Last row should not be removable. Avoid no 'new' row occurrence.
+            #
+            if y != self.MaxY:
+                parent = self.EntryObjectGet(0, y).winfo_parent()
+                parentObject = self.EntryObjectGet(0, y)._nametowidget(parent)
+                parentObject.destroy()
+        
+        #
         # Status : remove -> exist
         #
-        if self.EntryStatusGet(0, y) == 'remove':
+        elif self.EntryStatusGet(0, y) == 'remove':
             for x in range(self.ColumnNumber):
                 self.EntryStatusSet(x, y, 'exist')
                 self.EntryObjectGet(x, y).config (bg = '#DDFFDD')
@@ -339,7 +352,7 @@ class Table (tk.Frame):
         # Status : exist/modify -> remove
         # Because modify only transfer from exist.
         #
-        elif self.EntryStatusGet(0, y) != 'new':
+        else:
             for x in range(self.ColumnNumber):
                 self.EntryStatusSet(x, y, 'remove')
                 self.EntryObjectGet(x, y).config (bg = '#FFCCCC')
@@ -430,20 +443,12 @@ class GuiProductModify (tk.Frame):
         #
         # Operation Region - Button
         #
-        self.ExitButton = tk.Button (
+        self.SaveButton = tk.Button (
             self.OperationRegion, 
             text = '儲存(S):',
             bg = '#AA88AA',
             command = self.ButtonSaveCallback
             )
-        self.ExitButton.grid(row=0, column=7, sticky='news', padx=1, pady=5)
-        
-        self.SaveButton = tk.Button (
-            self.OperationRegion, 
-            text = '刪除已選取:',
-            bg = '#AA88AA'
-            )
-        self.SaveButton.grid(row=1, column=7, sticky='news', padx=1, pady=5)
 
         self.ExitButton = tk.Button (
             self.OperationRegion, 
@@ -451,7 +456,6 @@ class GuiProductModify (tk.Frame):
             bg = '#AA88AA',
             command = self.ButtonBackCallback
             )
-        self.ExitButton.grid(row=0, column=6, sticky='news', padx=1, pady=5)
         
         #
         # Operation Region - Entry
@@ -460,36 +464,46 @@ class GuiProductModify (tk.Frame):
             self.OperationRegion, 
             text = '公司代碼:'
             )
-        self.CompanyCodeText.grid(row=0, column=0, sticky='news', padx=1, pady=5)
         
         self.CompanyCodeEntry = tk.Entry (
             self.OperationRegion,
             borderwidth = 3, 
             relief=tk.RIDGE
             )
-        self.CompanyCodeEntry.grid(row=0, column=1, sticky='news', padx=1, pady=5)
         
         self.CompanyCodeWarningText = tk.Label (
             self.OperationRegion,
             width = 10,
-            #text = 'Code Incorrect!!',
             foreground = '#FF0000',
             font= ("Times New Roman", 12, "bold")
             )
-        self.CompanyCodeWarningText.grid(row=0, column=2, sticky='news')
         
         self.CompanyNameText = tk.Label (
             self.OperationRegion, 
             text = '公司名稱:'
             )
-        self.CompanyNameText.grid(row=1, column=0, sticky='news', padx=1, pady=5)
         
         self.CompanyNameEntry = tk.Entry (
             self.OperationRegion,
             borderwidth = 3, 
             relief=tk.RIDGE
             )
-        self.CompanyNameEntry.grid(row=1, column=1, sticky='news', padx=1, pady=5)
+            
+        self.CompanyNameWarningText = tk.Label (
+            self.OperationRegion,
+            width = 10,
+            foreground = '#FF0000',
+            font= ("Times New Roman", 12, "bold")
+            )
+            
+        self.SaveButton.grid              (row=0, column=7, sticky='news', padx=1, pady=5)
+        self.ExitButton.grid              (row=1, column=7, sticky='news', padx=1, pady=5)
+        self.CompanyCodeText.grid         (row=0, column=0, sticky='news', padx=1, pady=5)
+        self.CompanyCodeEntry.grid        (row=0, column=1, sticky='news', padx=1, pady=5)
+        self.CompanyCodeWarningText.grid  (row=0, column=2, sticky='news')
+        self.CompanyNameText.grid         (row=1, column=0, sticky='news', padx=1, pady=5)
+        self.CompanyNameEntry.grid        (row=1, column=1, sticky='news', padx=1, pady=5)
+        self.CompanyNameWarningText.grid  (row=1, column=2, sticky='news')
         
         self.CompanyCodeEntry.focus_set()
 
@@ -507,13 +521,13 @@ class GuiProductModify (tk.Frame):
              CompanyName = self.Database.IsCompanyCodeExist(CompanyCode)
              
              if CompanyName ==None:
-                 self.CompanyCodeWarningText.config (text = 'Code not Exist!!')
-                 self.CompanyCodeEntry.select_range(0, 'end')
-                 return
+                self.CompanyCodeWarningText.config (text = 'Code not Exist!!')
+                self.CompanyCodeEntry.select_range(0, 'end')
+                return
              else:
-                 self.CompanyCodeWarningText.config (text = '')
-                 self.CompanyNameEntry.delete (0, 'end')
-                 self.CompanyNameEntry.insert (0, CompanyName)
+                self.CompanyCodeWarningText.config (text = '')
+                self.CompanyNameEntry.delete (0, 'end')
+                self.CompanyNameEntry.insert (0, CompanyName)
                  
          self.CompanyNameEntry.focus_set()
          self.CompanyNameEntry.select_range(0, 'end')
@@ -524,9 +538,11 @@ class GuiProductModify (tk.Frame):
             CompanyData = self.Database.FindCompany (CompanyName)
 
             if CompanyData == None:
-                print('No')
+                self.CompanyNameWarningText.config (text = 'Name not Exist!!')
+                self.CompanyNameEntry.select_range(0, 'end')
+                return
             else:
-                print('Yes')
+                self.CompanyNameWarningText.config (text = '')
                 self.CompanyCodeEntry.config (state = 'readonly')
                 self.CompanyNameEntry.config (state = 'readonly')
                 self.CompanyName = CompanyName

@@ -173,7 +173,7 @@ class Table (tk.Frame):
                 width = 5
                 )
             entry.pack(side='left', fill='x')
-            entry.bind ('<Button-1>', self.ExistToRemove)
+            entry.bind ('<Button-1>', self.IndexCallback)
         
         for Index in range(self.ColumnNumber):
             TitleString = tk.StringVar()
@@ -282,13 +282,26 @@ class Table (tk.Frame):
                 if self.EntryObjectGet(i, j) == event.widget:
                     self.FocusAtNewEntry (i, j)
 
-    def ExistToRemove (self, event):
+    def IndexCallback (self, event):
         y = int(event.widget.get())
+
+        #
+        # Status : new. Remove whole row.
+        #
+        if self.EntryStatusGet(0, y) == 'new':
+            #
+            # Remove by remove parent of each object in the row.
+            # Last row should not be removable. Avoid no 'new' row occurrence.
+            #
+            if y != self.MaxY:
+                parent = self.EntryObjectGet(0, y).winfo_parent()
+                parentObject = self.EntryObjectGet(0, y)._nametowidget(parent)
+                parentObject.destroy()
 
         #
         # Status : remove -> exist
         #
-        if self.EntryStatusGet(0, y) == 'remove':
+        elif self.EntryStatusGet(0, y) == 'remove':
             for x in range(self.ColumnNumber):
                 self.EntryStatusSet(x, y, 'exist')
                 self.EntryObjectGet(x, y).config (bg = '#DDFFDD')
@@ -299,7 +312,7 @@ class Table (tk.Frame):
         # Status : exist/modify -> remove
         # Because modify only transfer from exist.
         #
-        elif self.EntryStatusGet(0, y) != 'new':
+        else self.EntryStatusGet(0, y) != 'new':
             for x in range(self.ColumnNumber):
                 self.EntryStatusSet(x, y, 'remove')
                 self.EntryObjectGet(x, y).config (bg = '#FFCCCC')
