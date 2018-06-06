@@ -241,6 +241,18 @@ class CompanyList (object):
     def IsEmpty (self):
         return self.Header.Name.GetNextNode() == None
     
+    #
+    # Check whether all company have no product.
+    #
+    def HaveAnyPoduct (self):
+        company = self.GetFirst()
+        while company != None:
+            if not company.ProductListHeader.IsEmpty():
+                return True
+            company = company.GetNext()
+            
+        return False
+    
     def GetFirst (self):
         return self.Header.Name.GetNextNode()
     

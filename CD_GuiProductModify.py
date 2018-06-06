@@ -40,7 +40,7 @@ class Table (tk.Frame):
         # Manage group of one row entry by Frame.
         # Collect all entry object into the array 'EntryArray'.
         #
-        # EntryArray start from [0][0] to [MaY][MaxX]
+        # EntryArray start from [0][0] to [MaxY][MaxX]
         #   In each cell
         #       [0] : object of entry
         #       [1] : record entry status
@@ -61,6 +61,7 @@ class Table (tk.Frame):
         self.DefineDefaultText = 2
         
         self.EntryArray = []
+        self.IndexArray = []
         self.X = 0
         self.Y = 0
         self.MaxX = -1 + len (Title)
@@ -191,6 +192,7 @@ class Table (tk.Frame):
                 )
             entry.pack(side='left', fill='x')
             entry.bind ('<Button-1>', self.IndexCallback)
+            self.IndexArray.append (entry)
         
         for Index in range(self.ColumnNumber):
             TitleString = tk.StringVar()
@@ -334,9 +336,7 @@ class Table (tk.Frame):
             # Last row should not be removable. Avoid no 'new' row occurrence.
             #
             if y != self.MaxY:
-                parent = self.EntryObjectGet(0, y).winfo_parent()
-                parentObject = self.EntryObjectGet(0, y)._nametowidget(parent)
-                parentObject.destroy()
+                self.RemoveRow (y)
         
         #
         # Status : remove -> exist
@@ -383,6 +383,32 @@ class Table (tk.Frame):
             self.EntryObjectGet(self.X, self.Y).focus_set()
             self.EntryObjectGet(self.X, self.Y).select_range(0, 'end')
 
+    def RemoveRow (self, y):
+        #
+        # Remove by remove parent of each object in the row.
+        #
+        self.FocusAtNewEntry (0, y)
+        parent = self.EntryObjectGet(0, y).winfo_parent()
+        parentObject = self.EntryObjectGet(0, y)._nametowidget(parent)
+        parentObject.destroy()
+        
+        #
+        # Remove recode in array.
+        #
+        self.EntryArray.pop(y)
+        self.IndexArray.pop(y)
+        self.MaxY -= 1
+        
+        #
+        # Modify row index of each row below.
+        #
+        for i in range (y, self.MaxY + 1):
+            self.IndexArray[i].config (state = 'normal')
+            self.IndexArray[i].delete (0, 'end')
+            self.IndexArray[i].insert (0, i)
+            self.IndexArray[i].config (state = 'disable')
+        self.FocusAtNewEntry (0, y)
+        
     def EntryObjectGet (self, x, y):
         return self.EntryArray[y][x][self.DefineObject]
 

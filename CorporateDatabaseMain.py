@@ -83,12 +83,15 @@ def SwitchToModifyCompany (root, database):
     menu = CD_GuiCompanyModify.GuiCompanyModify (root, database)
     menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
     menu.tkraise ()
-    
+
+#
+# Entry display GUI only there is company in database, and product in company.
+#
 def SwitchToSearch (root, database):
-    if database.IsEmpty() is False:
-        menu = CD_GuiDataDisplayTable.DataDisplayMenu (root, database)
-        menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
-        menu.tkraise ()
+    if not database.IsEmpty() and database.HaveAnyPoduct():
+            menu = CD_GuiDataDisplayTable.DataDisplayMenu (root, database)
+            menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+            menu.tkraise ()
     else:
         messagebox.showinfo('INFO', 'There are no data in database.')
  
