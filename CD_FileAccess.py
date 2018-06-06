@@ -55,12 +55,10 @@ def ProductImageModify (company, oriName=None, modName=None, picPath=None):
     #
     # Modify picture name.
     #
-    if   (oriName!=None) and (modName!=None) and (picPath==None):
+    if (oriName!=None) and (modName!=None) and (picPath==None):
         if os.path.exists(oriFileName):
             os.rename (oriFileName, modFileName)
             os.rename (oriFileSimpleName, modFileSimpleName)
-        else:
-            logging.warning ('The picture want to rename does not exist.')
 
     #
     # Add picture of product.
@@ -82,8 +80,9 @@ def ProductImageModify (company, oriName=None, modName=None, picPath=None):
     # Delete picture.
     #
     elif (oriName!=None) and (modName==None) and (picPath==None):
-        os.remove (oriFileName)
-        os.remove (oriFileSimpleName)
+        if os.path.exists(oriFileName):
+            os.remove (oriFileName)
+            os.remove (oriFileSimpleName)
     else:
         logging.warning ('Parameter Error!!')
         assert False

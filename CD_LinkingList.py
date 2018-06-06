@@ -393,7 +393,10 @@ class CompanyList (object):
     # Find specific CompanyNode by company name.
     #
     def FindCompanyData (self, CompanyName):
-        return self.FindCompany(CompanyName).ProductListHeader
+        if self.FindCompany(CompanyName) != None:
+            return self.FindCompany(CompanyName).ProductListHeader
+        else:
+            return None
     
     #
     # Find specific ProductNode by product name.
