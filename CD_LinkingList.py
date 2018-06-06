@@ -346,8 +346,8 @@ class CompanyList (object):
             node.Code.SetData (modifyNode.Code.GetData())
             
             logging.info('Modify Company Node:')
-            logging.info('    %s => %s' %node.Name.GetData() %modifyNode.Name.GetData())
-            logging.info('    %s => %s' %node.Code.GetData() %modifyNode.Code.GetData())
+            logging.info('    %s => %s' %(node.Name.GetData(), modifyNode.Name.GetData()))
+            logging.info('    %s => %s' %(node.Code.GetData(), modifyNode.Code.GetData()))
 
     #
     # If company code exist return company name, else return None
@@ -385,9 +385,15 @@ class CompanyList (object):
                 return None
             
             elif CurrentCompany.Name.GetData() == CompanyName:
-                return CurrentCompany.ProductListHeader
+                return CurrentCompany
             else:
                 CurrentCompany = CurrentCompany.Name.GetNextNode()
+                
+    #
+    # Find specific CompanyNode by company name.
+    #
+    def FindCompanyData (self, CompanyName):
+        return self.FindCompany(CompanyName).ProductListHeader
     
     #
     # Find specific ProductNode by product name.
@@ -396,7 +402,7 @@ class CompanyList (object):
         assert isinstance(CompanyName, str)
         assert isinstance(ProductName, str)
         
-        CurrentCompany = self.FindCompany (CompanyName)
+        CurrentCompany = self.FindCompanyData (CompanyName)
         CurrentProduct = CurrentCompany.Header.Name.GetNextNode ()
 
         while CurrentProduct != None:

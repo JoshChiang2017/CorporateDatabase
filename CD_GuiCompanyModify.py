@@ -1,6 +1,7 @@
 import tkinter as tk
 import CorporateDatabaseMain
 import logging
+import os
 import tkinter.filedialog as Dialog
 import CD_LinkingList as link
 import CD_FileAccess
@@ -595,18 +596,22 @@ class GuiCompanyModify (tk.Frame):
                         
                         self.database.RemoveNode (name)
                         log.SetRemoveFile (node)
-                        CD_FileAccess.RemoveCompanyFolder (nmae)
+                        CD_FileAccess.RemoveCompanyFolder (name)
                         
                     else:
                         for x in range (self.table.GetColumnNumber()):
                             if self.table.EntryStatusGet (x, y) == 'modify':
                                 preNode = self.TransferRowDefaultToNode(y)
                                 postNode = self.TransferRowToNode(y)
-                                name = preNode.GetName()
+                                preName = preNode.GetName()
+                                postName = postNode.GetName()
+                                postFolder = 'database/' + postName
 
-                                self.database.ModifyNode (name, postNode)
+                                self.database.ModifyNode (preName, postNode)
                                 log.SetModifyFile (preNode, postNode)
-                                os.rename ('database/' + preNode.GetName(), 'database/' + postNode.GetName(), )
+                                os.rename ('database/' + preName, postFolder)
+                                os.rename (postFolder + '/' + preName + '.txt',
+                                           postFolder + '/' + postName + '.txt')
                                 break
 
                 #

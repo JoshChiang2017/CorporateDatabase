@@ -29,7 +29,7 @@ def CreateCompanyFolder (companyName):
     
 def RemoveCompanyFolder (companyName):
     folder = 'database/' + companyName
-    shutil.rmtree (floder)
+    shutil.rmtree (folder)
     
 #
 # The function is used to modify picture name or add or modify picture.
