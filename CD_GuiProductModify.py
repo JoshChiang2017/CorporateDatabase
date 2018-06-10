@@ -6,6 +6,7 @@ import CD_LinkingList as link
 import CD_FileAccess
 import CD_LogHistotry as logger
 from tkinter import messagebox
+from CD_Configuration import *
 
 class PopupMenu(tk.Frame):
     def __init__(self, Parent):
@@ -102,6 +103,7 @@ class Table (tk.Frame):
                 borderwidth = 1,
                 relief=tk.GROOVE,
                 text = 'NO.',
+                font = GLOBAL_CONFIG_FONT,
                 width = 5
                 )
             entry.pack(side='left', fill='both')
@@ -116,6 +118,7 @@ class Table (tk.Frame):
                 state = 'disabled',
                 justify = 'center',
                 textvariable = TitleString,
+                font = GLOBAL_CONFIG_FONT,
                 disabledforeground = '#000000'
                 )
             entry.pack(side='left', fill='both', expand=True)
@@ -187,6 +190,7 @@ class Table (tk.Frame):
                 state = 'disabled',
                 justify = 'center',
                 textvariable = TitleString,
+                font = GLOBAL_CONFIG_FONT,
                 disabledforeground = '#000000',
                 width = 5
                 )
@@ -202,6 +206,7 @@ class Table (tk.Frame):
                 borderwidth = 1,
                 relief=tk.GROOVE,
                 textvariable = TitleString,
+                font = GLOBAL_CONFIG_FONT,
                 bg = Background
                 )
             entry.pack(side='left', fill='x', expand=True)
@@ -473,6 +478,7 @@ class GuiProductModify (tk.Frame):
             self.OperationRegion, 
             text = '儲存(S):',
             bg = '#AA88AA',
+            font = GLOBAL_CONFIG_FONT,
             command = self.ButtonSaveCallback
             )
 
@@ -480,6 +486,7 @@ class GuiProductModify (tk.Frame):
             self.OperationRegion, 
             text = '放棄變更(Q):',
             bg = '#AA88AA',
+            font = GLOBAL_CONFIG_FONT,
             command = self.ButtonBackCallback
             )
         
@@ -488,12 +495,14 @@ class GuiProductModify (tk.Frame):
         #
         self.CompanyCodeText = tk.Label (
             self.OperationRegion, 
+            font = GLOBAL_CONFIG_FONT,
             text = '公司代碼:'
             )
         
         self.CompanyCodeEntry = tk.Entry (
             self.OperationRegion,
             borderwidth = 3, 
+            font = GLOBAL_CONFIG_FONT,
             relief=tk.RIDGE
             )
         
@@ -501,25 +510,27 @@ class GuiProductModify (tk.Frame):
             self.OperationRegion,
             width = 10,
             foreground = '#FF0000',
-            font= ("Times New Roman", 12, "bold")
+            font = GLOBAL_CONFIG_FONT
             )
         
         self.CompanyNameText = tk.Label (
             self.OperationRegion, 
+            font = GLOBAL_CONFIG_FONT,
             text = '公司名稱:'
             )
         
         self.CompanyNameEntry = tk.Entry (
             self.OperationRegion,
             borderwidth = 3, 
+            font = GLOBAL_CONFIG_FONT,
             relief=tk.RIDGE
             )
             
         self.CompanyNameWarningText = tk.Label (
             self.OperationRegion,
-            width = 10,
+            width = 20,
             foreground = '#FF0000',
-            font= ("Times New Roman", 12, "bold")
+            font = GLOBAL_CONFIG_FONT
             )
             
         self.SaveButton.grid              (row=0, column=7, sticky='news', padx=1, pady=5)

@@ -1,4 +1,5 @@
 import logging
+from CD_Configuration import *
 
 ## Linking list
 #

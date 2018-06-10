@@ -9,17 +9,18 @@ import CD_GuiProductModify
 import CD_GuiCompanyModify
 import CD_FileAccess
 import CD_LinkingList
+from CD_Configuration import *
 
 #
 # Begin a new database.
 #
 def InitDatabase():
-    dataBaseName = 'database'
+    dataBaseName = GLOBAL_CONFIG_DB_FOLDER
     if not os.path.isdir(dataBaseName):
         logging.info ('Create New Database.')
         os.mkdir(dataBaseName)
         
-        file = open (dataBaseName + '/TotalCompanyList.txt', 'w')
+        file = open (GLOBAL_CONFIG_DB_PATH, 'w')
         file.write ('%1s' % '' + '| ' + '%-20s' % 'CompanyName' + '| ' + '%-20s' % 'CompanyCode' +'|\n')
         for i in range (50):
             file.write ('=')
@@ -42,7 +43,7 @@ def InitialCheck():
     #     Product image not found image
     #
     NecessaryFile = (
-        'database/TotalCompanyList.txt',
+        GLOBAL_CONFIG_DB_PATH,
         'image/EntryImage.png',
         'image/ImageNotFound.png'
         )
