@@ -7,6 +7,7 @@ import CD_FileAccess
 import CD_LogHistotry as logger
 from tkinter import messagebox
 from CD_Configuration import *
+import time
 
 class PopupMenu(tk.Frame):
     def __init__(self, Parent):
@@ -24,7 +25,7 @@ class PopupMenu(tk.Frame):
     def Triggle(self):
         self.HideList ^= 1
         self.listBox.config (height=[self.listBox.size(), 1][self.HideList])
-        
+
 #
 # @Title                     List of string display on each top of column.
 # @ShowIndex                 Display row index.
@@ -449,6 +450,7 @@ class GuiProductModify (tk.Frame):
         
         self.title = ('產品名稱', '產品代碼', '單價', '圖片(Y/N)', '備註')
         self.Database = Database
+        self.root = Parent
         self.CompanyName =None
         self.companyData = None
         
@@ -707,6 +709,8 @@ class GuiProductModify (tk.Frame):
             self.Exit()
             
     def ButtonSaveCallback (self):
+        loadingImage = CorporateDatabaseMain.LoadingImage(self.root)
+        loadingImage.Start()
         #
         # 1.Check data of table valid.
         #
@@ -823,6 +827,7 @@ class GuiProductModify (tk.Frame):
                 #
                 CD_FileAccess.ExportProduct(self.CompanyName, self.companyData)
                 log.AddLog()
+                loadingImage.End()
                 logging.info ('Modify product file success!\n')
                 self.Exit()
 

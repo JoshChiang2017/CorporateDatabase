@@ -71,8 +71,8 @@ def InitialCheck():
         messagebox.showinfo('WARNING', MessageDisplay)
 
     return Check
-
-def SwitchToModify (root, database):
+    
+def SwitchToModifyProduct (root, database):
     if database.IsEmpty() is False:
         menu = CD_GuiProductModify.GuiProductModify (root, database)
         menu.grid (row=0, column=0, sticky='news', padx=5, pady=5)
@@ -95,13 +95,13 @@ def SwitchToSearch (root, database):
             menu.tkraise ()
     else:
         messagebox.showinfo('INFO', 'There are no data in database.')
- 
+
 #
 # GUI of application entry menu.
 #
 class EntryMenu (tk.Frame):
-    def __init__(self, Parent):
-        tk.Frame.__init__(self, Parent)
+    def __init__(self, parent):
+        tk.Frame.__init__(self, parent)
         InitDatabase()
         
         #
@@ -162,7 +162,7 @@ class EntryMenu (tk.Frame):
             font = ('標楷體', 14),
             bg = '#6899CA',
             width=1,
-            command = lambda: SwitchToModifyCompany (root, Database)
+            command = lambda: SwitchToModifyCompany (parent, Database)
             )
         self.ButtonModifyProduct = tk.Button (
             self.FrameMainBottom,
@@ -170,7 +170,7 @@ class EntryMenu (tk.Frame):
             font = ('標楷體', 14),
             bg = '#6899CA',
             width=1,
-            command = lambda: SwitchToModify (root, Database)
+            command = lambda: SwitchToModifyProduct (parent, Database)
             )
         
         self.ButtonSearch = tk.Button (
@@ -179,7 +179,7 @@ class EntryMenu (tk.Frame):
             font = ('標楷體', 14),
             bg = '#6899CA',
             width=1,
-            command = lambda: SwitchToSearch (root, Database)
+            command = lambda: SwitchToSearch (parent, Database)
             )
         
         self.ButtonExit = tk.Button (
@@ -188,7 +188,7 @@ class EntryMenu (tk.Frame):
             font = ('標楷體', 14),
             bg = '#6899CA',
             width=1,
-            command=lambda: Parent.destroy ()
+            command=lambda: parent.destroy ()
             )    
 
         self.ButtonModifyCompany.grid (row=0, column=0, sticky='news', padx=1, pady=1)
@@ -214,7 +214,45 @@ class EntryMenu (tk.Frame):
             image = self.EntryPhotoTkImage
             )
         self.LabelEntryImage.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+
+class LoadingImage(object):
+    def __init__(self, parent):
+        self.frameNumber = GLOBAL_CONFIG_LOADING_PIC_FRAMES
+        self.frames = [tk.PhotoImage(file=GLOBAL_CONFIG_LOADING_PIC, format = 'gif -index %i' %(i)) for i in range(self.frameNumber)]
+        self.loadingImageEvent = None
         
+        self.loadingLabel = tk.Label (parent)
+        self.loadingLabel.grid (row=0, column=0)
+        print(1)
+        #self.loadingLabel.tkraise ()
+        
+    
+    #
+    # Some file access cost too much time. Use this funciton to display
+    # loading animation. User should use LoadingImageEnd() to distroy 
+    # animation after access successful.
+    #
+    def Start(self, frameIndex=0):
+        print(2)
+        frame = self.frames[frameIndex]
+        frameIndex += 1
+        if frameIndex == self.frameNumber:
+            frameIndex = 0
+        print(3)
+        self.loadingLabel.configure(image=frame)
+        self.loadingImageEvent = self.loadingLabel.after(100, self.Start, frameIndex)
+        print(4)
+        self.loadingLabel.tkraise ()
+        print (frameIndex)
+        
+        #self.loadingImageEvent = root.after (0, Update666, 0) # first 0 is time, second 0 is frame index
+
+    def End(self):
+        print(5)
+        self.after_cancel (self.loadingImageEvent)
+        
+        print ('END EDN')
+        self.loadingLabel.destroy()
 
 #
 # Run main
@@ -250,7 +288,6 @@ if __name__ == '__main__':
     #
     MenuMain.grid (row=0, column=0, sticky='news', padx=5, pady=5)
     MenuMain.tkraise ()
-
     root.mainloop()
 
     print ("==== GUI  End  ====")
