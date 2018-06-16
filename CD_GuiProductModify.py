@@ -1,13 +1,13 @@
 import tkinter as tk
 import CorporateDatabaseMain
 import logging
+import threading
 import tkinter.filedialog as Dialog
 import CD_LinkingList as link
 import CD_FileAccess
 import CD_LogHistotry as logger
 from tkinter import messagebox
 from CD_Configuration import *
-import time
 
 class PopupMenu(tk.Frame):
     def __init__(self, Parent):
@@ -440,6 +440,14 @@ class Table (tk.Frame):
         return (self.MaxX + 1)
     def GetMaxColumn(self):
         return (self.MaxX)
+        
+    #
+    # Lock table. Transfer all entrys of table to readonly.
+    #
+    def LockTable(self):
+        for x in range (self.GetColumnNumber()):
+            for y in range (self.GetRowNumber()):
+                self.EntryObjectGet (x, y).config (state = 'readonly')
 
 #
 # GUI of add data to database
@@ -612,7 +620,7 @@ class GuiProductModify (tk.Frame):
         self.table.AddNewRow()
 
     def DataValidCheck(self):
-        logging.info ('DataValidCheck() Start...')
+        logging.info ('DataValidCheck()')
 
         msg = 'Invalid:\n'
         def LogWarning(rowNumber, message):
@@ -694,8 +702,6 @@ class GuiProductModify (tk.Frame):
                 lastRowValid = False
                 LogWarning (rowNumber, 'Lase row should be N/A')
 
-        logging.info ('DataValidCheck() End...\n')
-
         if nameValid and codeValid and priceValid and lastRowValid:
             return True
         else:
@@ -707,10 +713,8 @@ class GuiProductModify (tk.Frame):
             
         if abort:
             self.Exit()
-            
+    
     def ButtonSaveCallback (self):
-        loadingImage = CorporateDatabaseMain.LoadingImage(self.root)
-        loadingImage.Start()
         #
         # 1.Check data of table valid.
         #
@@ -741,96 +745,111 @@ class GuiProductModify (tk.Frame):
 
             if save:
                 #
-                # 3.Call api save to database.
+                # 3.Save table to database.
                 #
-                log = logger.HistoryLog(self.CompanyName)
-                for y in range (self.table.GetMaxRow()):
-                    if self.table.EntryStatusGet (0, y) == 'new':
-                        node = self.TransferRowToNode(y)
-                        name = node.GetName()
-                        picPath = self.table.EntryTextGet (3, y)
-                        
-                        #
-                        # Valid path begin with '@'
-                        #
-                        if picPath[0] == '@':
-                            picPath = picPath.lstrip ('@')
-                            
-                            #
-                            # Add picture.
-                            #
-                            tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
-                            node.Image = tkImage
-                        
-                        self.companyData.AddNode(node)
-                        log.SetAddFile (node)
-                        
-                    elif self.table.EntryStatusGet (0, y) == 'remove':
-                        node = self.TransferRowDefaultToNode(y)
-                        name = node.GetName()
-                        
-                        self.companyData.RemoveNode (name)
-                        log.SetRemoveFile (node)
-                        
-                        #
-                        # Remove picture.
-                        #
-                        CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name)
-                        
-                    else:
-                        modifyFlag = False
-                        for x in range (self.table.GetColumnNumber()):
-                            if self.table.EntryStatusGet (x, y) == 'modify':
-                                modifyFlag = True
-                                break
-                                
-                        if modifyFlag == True:
-                            preNode = self.TransferRowDefaultToNode(y)
-                            postNode = self.TransferRowToNode(y)
-                            name = preNode.GetName()
-                            modName = postNode.GetName()
-                            
-                            #
-                            # Rename picture if modify product name.
-                            #
-                            if self.table.EntryStatusGet (0, y) == 'modify':
-                                CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, modName=modName)
-                            
-                            #
-                            # Modify picture of product.
-                            #
-                            if self.table.EntryStatusGet (3, y) == 'modify':
-                                picPath = self.table.EntryTextGet (3, y)
-                                
-                                #
-                                # Remove
-                                #
-                                if picPath[0] == 'N' or picPath[0] == 'n':
-                                  tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name)
-                                  postNode.Image = None
-                                
-                                #
-                                # Modify
-                                #
-                                elif picPath[0] == '@':
-                                    picPath = picPath.lstrip ('@')
-                                    tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
-                                    postNode.Image = tkImage
-                                
-                            self.companyData.ModifyNode (name, postNode)
-                            log.SetModifyFile (preNode, postNode)
-                                
-
+                logging.info ('Start save table to database...')
+                self.table.LockTable()
+                
+                loadingImage = CorporateDatabaseMain.LoadingImage(self.root)
+                loadingImage.Start()
+                
+                self.InternalSaveCallback()
 
                 #
                 # 4. Save database to hard drive
                 #
-                CD_FileAccess.ExportProduct(self.CompanyName, self.companyData)
-                log.AddLog()
-                loadingImage.End()
-                logging.info ('Modify product file success!\n')
-                self.Exit()
+                self.after (0, self.InternalExitCallback, loadingImage)
 
+    def InternalExitCallback(self, loadingImage):
+        if (threading.active_count() > 1):
+            self.after (400, self.InternalExitCallback, loadingImage)
+        
+        else:
+            CD_FileAccess.ExportProduct(self.CompanyName, self.companyData)
+            loadingImage.End()
+            self.Exit()
+            logging.info ('Modify product file success!\n')
+            
+    def InternalSaveCallback(self):
+        log = logger.HistoryLog(self.CompanyName)
+        for y in range (self.table.GetMaxRow()):
+            if self.table.EntryStatusGet (0, y) == 'new':
+                node = self.TransferRowToNode(y)
+                name = node.GetName()
+                picPath = self.table.EntryTextGet (3, y)
+                
+                #
+                # Valid path begin with '@'
+                #
+                if picPath[0] == '@':
+                    picPath = picPath.lstrip ('@')
+                    
+                    #
+                    # Add picture.
+                    #
+                    tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
+                    node.Image = tkImage
+                
+                self.companyData.AddNode(node)
+                log.SetAddFile (node)
+                
+            elif self.table.EntryStatusGet (0, y) == 'remove':
+                node = self.TransferRowDefaultToNode(y)
+                name = node.GetName()
+                
+                self.companyData.RemoveNode (name)
+                log.SetRemoveFile (node)
+                
+                #
+                # Remove picture.
+                #
+                CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name)
+                
+            else:
+                modifyFlag = False
+                for x in range (self.table.GetColumnNumber()):
+                    if self.table.EntryStatusGet (x, y) == 'modify':
+                        modifyFlag = True
+                        break
+                        
+                if modifyFlag == True:
+                    preNode = self.TransferRowDefaultToNode(y)
+                    postNode = self.TransferRowToNode(y)
+                    name = preNode.GetName()
+                    modName = postNode.GetName()
+                    
+                    #
+                    # Rename picture if modify product name.
+                    #
+                    if self.table.EntryStatusGet (0, y) == 'modify':
+                        CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, modName=modName)
+                    
+                    #
+                    # Modify picture of product.
+                    #
+                    if self.table.EntryStatusGet (3, y) == 'modify':
+                        picPath = self.table.EntryTextGet (3, y)
+                        
+                        #
+                        # Remove
+                        #
+                        if picPath[0] == 'N' or picPath[0] == 'n':
+                          tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name)
+                          postNode.Image = None
+                        
+                        #
+                        # Modify
+                        #
+                        elif picPath[0] == '@':
+                            picPath = picPath.lstrip ('@')
+                            tkImage = CD_FileAccess.ProductImageModify (self.CompanyName, oriName=name, picPath=picPath)
+                            postNode.Image = tkImage
+                        
+                    self.companyData.ModifyNode (name, postNode)
+                    log.SetModifyFile (preNode, postNode)
+                        
+        log.AddLog()
+    
     #
     # Transfer specific node into class ProductNode
     #

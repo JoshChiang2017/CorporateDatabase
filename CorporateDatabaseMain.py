@@ -63,7 +63,7 @@ def InitialCheck():
 
     for i in range (NecessaryFileCount):
         if not os.path.exists (NecessaryFile[i]):
-            print ('WARNING!!', NecessaryFile[i], WarningMessage[i])
+            logging.warning ('WARNING!!', NecessaryFile[i], WarningMessage[i])
             MessageDisplay += WarningMessage[i]
             Check = False
 
@@ -223,9 +223,6 @@ class LoadingImage(object):
         
         self.loadingLabel = tk.Label (parent)
         self.loadingLabel.grid (row=0, column=0)
-        print(1)
-        #self.loadingLabel.tkraise ()
-        
     
     #
     # Some file access cost too much time. Use this funciton to display
@@ -233,33 +230,24 @@ class LoadingImage(object):
     # animation after access successful.
     #
     def Start(self, frameIndex=0):
-        print(2)
         frame = self.frames[frameIndex]
+        
         frameIndex += 1
         if frameIndex == self.frameNumber:
             frameIndex = 0
-        print(3)
         self.loadingLabel.configure(image=frame)
-        self.loadingImageEvent = self.loadingLabel.after(100, self.Start, frameIndex)
-        print(4)
-        self.loadingLabel.tkraise ()
-        print (frameIndex)
         
-        #self.loadingImageEvent = root.after (0, Update666, 0) # first 0 is time, second 0 is frame index
+        self.loadingImageEvent = self.loadingLabel.after(100, self.Start, frameIndex)
+        self.loadingLabel.tkraise ()
 
     def End(self):
-        print(5)
-        self.after_cancel (self.loadingImageEvent)
-        
-        print ('END EDN')
+        self.loadingLabel.after_cancel (self.loadingImageEvent)
         self.loadingLabel.destroy()
 
 #
 # Run main
 #
 if __name__ == '__main__':
-    print ("==== GUI Start ====")
-    
     #
     # Debug message level=
     #   CRITICAL
@@ -289,5 +277,3 @@ if __name__ == '__main__':
     MenuMain.grid (row=0, column=0, sticky='news', padx=5, pady=5)
     MenuMain.tkraise ()
     root.mainloop()
-
-    print ("==== GUI  End  ====")

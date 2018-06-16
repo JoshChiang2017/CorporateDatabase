@@ -469,7 +469,7 @@ class GuiCompanyModify (tk.Frame):
         self.table.AddNewRow()
 
     def DataValidCheck(self):
-        logging.info ('DataValidCheck() Start...')
+        logging.info ('DataValidCheck()')
 
         msg = 'Invalid:\n'
         def LogWarning(rowNumber, message):
@@ -540,8 +540,6 @@ class GuiCompanyModify (tk.Frame):
                 self.table.EntryObjectGet(column, rowNumber).config (bg = '#FF3333')
                 lastRowValid = False
                 LogWarning (rowNumber, 'Lase row should be N/A')
-
-        logging.info ('DataValidCheck() End...\n')
 
         if nameValid and codeValid and lastRowValid:
             return True

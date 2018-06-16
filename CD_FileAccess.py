@@ -1,6 +1,7 @@
 import os
 import shutil
 import logging
+import threading
 from PIL import Image,ImageTk
 import CD_LinkingList as link
 from CD_Configuration import *
@@ -34,6 +35,9 @@ def RemoveCompanyFolder (companyName):
     
 #
 # The function is used to modify picture name or add or modify picture.
+# This function use multi-threading to save image. It is programmer's 
+# responsibility to check background threading of this function has been
+# completed.
 #
 # Only below parameters group can be entered at the same time.
 #     Input : oriName              => Delete picture.
@@ -73,8 +77,11 @@ def ProductImageModify (company, oriName=None, modName=None, picPath=None):
             os.remove (oriFileName)
             os.remove (oriFileSimpleName)
         
-        im.save (oriFileName)
-        imResize.save (oriFileSimpleName)
+        thread1 = threading.Thread (target=im.save, args=(oriFileName,))
+        thread2 = threading.Thread (target=imResize.save, args=(oriFileSimpleName,))
+        thread1.start()
+        thread2.start()
+        
         return imTk
         
     #
@@ -169,7 +176,7 @@ def LoadDatabase():
     try:
         rootFile = open (GLOBAL_CONFIG_DB_PATH, 'r')
     except FileNotFoundError:
-        print ('WARNING! No database exist!!!!!')
+        logging.warning ('WARNING! No database exist!!!!!')
         raise
 
     database = link.CompanyList()
@@ -197,7 +204,7 @@ def LoadDatabase():
         CompanyProductFile = CompanyPath + CurrentCompany.Name.GetData() + '.txt'
 
         if not os.path.exists(CompanyProductFile):
-            print ('WARNING! No company data exist!!!!! (%s)' % CompanyProductFile)
+            logging.warning ('WARNING! No company data exist!!!!! (%s)' % CompanyProductFile)
             
         else:
             logging.info (CompanyProductFile)
