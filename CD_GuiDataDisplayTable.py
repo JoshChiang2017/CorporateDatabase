@@ -68,7 +68,6 @@ class DataDisplayMenu (tk.Frame):
         # Initalize table of data display.
         #
         self.DisplayTable = DataTable(self)
-        self.DisplayTable.grid (row=0, column=0, columnspan=3, rowspan=2, sticky='news', padx=5, pady=5)
 
         self.rowconfigure(0, weight = 1)
         self.rowconfigure(1, weight = 1)
@@ -110,10 +109,31 @@ class DataDisplayMenu (tk.Frame):
             bg = '#DDDDDD',
             height = 100,
             width = 100,
+            borderwidth = 5,
+            relief=tk.SUNKEN,
             image = None
             )
-        self.ProductSimpleImage.grid(row=2, column=2, columnspan=1, rowspan=1, sticky='news', padx = 5, pady = 5)
+            
+        #
+        # frame of control button
+        #
+        self.SearchFrame = tk.Frame (self)
 
+        self.DisplayTable.grid      (row=0, column=0, columnspan=3, rowspan=2, sticky='news', padx=5, pady=5)
+        self.ProductSimpleImage.grid(row=2, column=0, columnspan=2, rowspan=1, sticky='news', padx = 5, pady = 5)
+        self.SearchFrame.grid       (row=2, column=2, columnspan=1, rowspan=1, sticky='news', padx = 5, pady = 5)
+        
+        #
+        # Search item
+        #
+        self.ButtonBackToMain = tk.Button (
+            self.SearchFrame,
+            text = '回主畫面(Q)',
+            bg = '#C7C1D4',
+            font = CONF.GLOBAL_CONFIG_FONT,
+            command = lambda: self.Exit ()
+            )
+        self.ButtonBackToMain.pack()
 
         #
         # Configure operation calkback in treeview
@@ -124,29 +144,6 @@ class DataDisplayMenu (tk.Frame):
         self.DisplayTable.tree.bind("<Return>", self.TreeviewReturnCalkback)
         self.bind_all ('<Control-Key-Q>', lambda event: self.Exit())
         self.bind_all ('<Control-Key-q>', lambda event: self.Exit())
-
-        #
-        # Search relate control
-        #
-        self.SearchFrame = tk.Frame (
-            self,
-            borderwidth = 5,
-            relief=tk.SUNKEN,
-            bg = '#D8E5f3'
-            )
-        self.SearchFrame.grid (row=2, column=0, columnspan=2, rowspan=1, sticky='news', padx = 5, pady = 5)
-
-        #
-        # Search item
-        #
-        self.ButtonBackToMain = tk.Button (
-            self.SearchFrame,
-            text = '回主畫面(Q)',
-            bg = '#6899CA',
-            font = CONF.GLOBAL_CONFIG_FONT,
-            command = lambda: self.Exit ()
-            )
-        self.ButtonBackToMain.grid()
 
         if self.Database.IsEmpty() is False:
             #

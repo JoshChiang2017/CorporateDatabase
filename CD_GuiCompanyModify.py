@@ -430,7 +430,7 @@ class GuiCompanyModify (tk.Frame):
         self.SaveButton = tk.Button (
             self.controlFrame, 
             text = '儲存(S):',
-            bg = '#AA88AA',
+            bg = '#C7C1D4',
             font = CONF.GLOBAL_CONFIG_FONT,
             width=20,
             command = self.ButtonSaveCallback
@@ -440,7 +440,7 @@ class GuiCompanyModify (tk.Frame):
         self.ExitButton = tk.Button (
             self.controlFrame, 
             text = '放棄變更(Q):',
-            bg = '#AA88AA',
+            bg = '#C7C1D4',
             font = CONF.GLOBAL_CONFIG_FONT,
             width=20,
             command = self.ButtonBackCallback

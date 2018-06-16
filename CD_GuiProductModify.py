@@ -487,7 +487,7 @@ class GuiProductModify (tk.Frame):
         self.SaveButton = tk.Button (
             self.OperationRegion, 
             text = '儲存(S):',
-            bg = '#AA88AA',
+            bg = '#C7C1D4',
             font = CONF.GLOBAL_CONFIG_FONT,
             command = self.ButtonSaveCallback
             )
@@ -495,7 +495,7 @@ class GuiProductModify (tk.Frame):
         self.ExitButton = tk.Button (
             self.OperationRegion, 
             text = '放棄變更(Q):',
-            bg = '#AA88AA',
+            bg = '#C7C1D4',
             font = CONF.GLOBAL_CONFIG_FONT,
             command = self.ButtonBackCallback
             )

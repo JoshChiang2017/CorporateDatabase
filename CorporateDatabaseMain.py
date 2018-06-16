@@ -106,6 +106,12 @@ def SwitchToSearch (root, database):
 class EntryMenu (tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
+        
+        mainBg = '#FFFFDE'
+        cloumn0Bg = '#B8C1CF'
+        cloumn1Bg = '#DFBED0'
+        cloumn2Bg = '#C8A2E6'
+        
         InitDatabase()
         
         #
@@ -132,14 +138,14 @@ class EntryMenu (tk.Frame):
             self,
             borderwidth = 3,
             relief=tk.SUNKEN,
-            bg = '#D8E5f3'
+            bg = mainBg
             )
         
         self.FrameMainBottom = tk.Frame(
             self,
             borderwidth = 3,
             relief=tk.SUNKEN,
-            bg = '#D8E5f3'
+            bg = mainBg
             )
         
         self.FrameMainTop.grid (row=0, column=0, rowspan=1, sticky='news')
@@ -166,7 +172,7 @@ class EntryMenu (tk.Frame):
             self.FrameMainBottom,
             text = '修改(公司)',
             font = ('標楷體', 14),
-            bg = '#6899CA',
+            bg = cloumn0Bg,
             width=1,
             command = lambda: SwitchToModifyCompany (parent, Database)
             )
@@ -176,7 +182,7 @@ class EntryMenu (tk.Frame):
             self.FrameMainBottom,
             text = '修改(產品)',
             font = ('標楷體', 14),
-            bg = '#6899CA',
+            bg = cloumn0Bg,
             width=1,
             command = lambda: SwitchToModifyProduct (parent, Database)
             )
@@ -186,7 +192,7 @@ class EntryMenu (tk.Frame):
             self.FrameMainBottom,
             text = '查詢',
             font = ('標楷體', 14),
-            bg = '#6899CA',
+            bg = cloumn1Bg,
             width=1,
             command = lambda: SwitchToSearch (parent, Database)
             )
@@ -196,7 +202,7 @@ class EntryMenu (tk.Frame):
             self.FrameMainBottom,
             text = 'Assistance',
             font = ('標楷體', 14),
-            bg = '#6899CA',
+            bg = cloumn2Bg,
             width=1,
             command=lambda: self.FontConfig ()
             )
@@ -206,17 +212,17 @@ class EntryMenu (tk.Frame):
             self.FrameMainBottom,
             text = '離開',
             font = ('標楷體', 14),
-            bg = '#6899CA',
+            bg = cloumn2Bg,
             width=1,
             command=lambda: parent.destroy ()
             )
         self.buttonList.append (self.ButtonExit)
 
-        self.ButtonModifyCompany.grid (row=0, column=0, sticky='news', padx=1, pady=1)
-        self.ButtonModifyProduct.grid (row=1, column=0, sticky='news', padx=1, pady=1)
-        self.ButtonSearch.grid        (row=0, column=1, sticky='news', padx=1, pady=1)
-        self.ButtonFontConfig.grid    (row=0, column=2, sticky='news', padx=1, pady=1)
-        self.ButtonExit.grid          (row=1, column=2, sticky='news', padx=1, pady=1)
+        self.ButtonModifyCompany.grid (row=0, column=0, sticky='news', padx=10, pady=3)
+        self.ButtonModifyProduct.grid (row=1, column=0, sticky='news', padx=10, pady=3)
+        self.ButtonSearch.grid        (row=0, column=1, sticky='news', padx=10, pady=3)
+        self.ButtonFontConfig.grid    (row=0, column=2, sticky='news', padx=10, pady=3)
+        self.ButtonExit.grid          (row=1, column=2, sticky='news', padx=10, pady=3)
         self.update()
 
         #
