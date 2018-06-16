@@ -610,14 +610,21 @@ class GuiProductModify (tk.Frame):
     def CompanyNameCallback (self, event):
         CompanyName = self.CompanyNameEntry.get()
         if CompanyName != '':
-            CompanyData = self.Database.FindCompanyData (CompanyName)
+            company = self.Database.FindCompany (CompanyName)
+            companyCode = company.Code.GetData()
+            CompanyData = company.ProductListHeader
 
             if CompanyData == None:
                 self.CompanyNameWarningText.config (text = 'Name not Exist!!')
                 self.CompanyNameEntry.select_range(0, 'end')
                 return
             else:
+                self.CompanyCodeEntry.delete (0, 'end')
+                self.CompanyCodeEntry.insert (0, companyCode)
+                
+                self.CompanyCodeWarningText.config (text = '')
                 self.CompanyNameWarningText.config (text = '')
+                
                 self.CompanyCodeEntry.config (state = 'readonly')
                 self.CompanyNameEntry.config (state = 'readonly')
                 self.CompanyName = CompanyName
