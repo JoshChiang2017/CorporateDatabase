@@ -135,15 +135,12 @@ class EntryMenu (tk.Frame):
         # Frame
         #
         self.FrameMainTop = tk.Frame(
-            self,
-            borderwidth = 3,
-            relief=tk.SUNKEN,
-            bg = mainBg
+            self
             )
         
         self.FrameMainBottom = tk.Frame(
             self,
-            borderwidth = 3,
+            borderwidth = 5,
             relief=tk.SUNKEN,
             bg = mainBg
             )
@@ -218,11 +215,11 @@ class EntryMenu (tk.Frame):
             )
         self.buttonList.append (self.ButtonExit)
 
-        self.ButtonModifyCompany.grid (row=0, column=0, sticky='news', padx=10, pady=3)
-        self.ButtonModifyProduct.grid (row=1, column=0, sticky='news', padx=10, pady=3)
-        self.ButtonSearch.grid        (row=0, column=1, sticky='news', padx=10, pady=3)
-        self.ButtonFontConfig.grid    (row=0, column=2, sticky='news', padx=10, pady=3)
-        self.ButtonExit.grid          (row=1, column=2, sticky='news', padx=10, pady=3)
+        self.ButtonModifyCompany.grid (row=0, column=0, sticky='news', padx=0, pady=0)
+        self.ButtonModifyProduct.grid (row=1, column=0, sticky='news', padx=0, pady=0)
+        self.ButtonSearch.grid        (row=0, column=1, sticky='news', padx=0, pady=0)
+        self.ButtonFontConfig.grid    (row=0, column=2, sticky='news', padx=0, pady=0)
+        self.ButtonExit.grid          (row=1, column=2, sticky='news', padx=0, pady=0)
         self.update()
 
         #
@@ -241,7 +238,7 @@ class EntryMenu (tk.Frame):
             bg = '#FFFFFF',
             image = self.EntryPhotoTkImage
             )
-        self.LabelEntryImage.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+        self.LabelEntryImage.grid (row=0, column=0, sticky='news')
         
     def FontConfig (self):
         if CONF.GLOBAL_CONFIG_FONT == ('標楷體', 12):

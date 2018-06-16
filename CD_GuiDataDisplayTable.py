@@ -90,12 +90,15 @@ class DataDisplayMenu (tk.Frame):
             CurrentProduct = CurrentCompany.ProductListHeader.Header.Name.GetNextNode()
             
             while CurrentProduct != None:
+                #
+                # Add price column space to make separate more obvious with later column.
+                #
                 self.DisplayTable.tree.insert('', -1,
                     values=(
                         CurrentCompany.Name.GetData(),
                         CurrentProduct.Name.GetData(),
                         CurrentProduct.Code.GetData(),
-                        CurrentProduct.Price.GetData(),
+                        (CurrentProduct.Price.GetData() + '  '),
                         CurrentProduct.comment
                         ))
                 CurrentProduct = CurrentProduct.Name.GetNextNode()
