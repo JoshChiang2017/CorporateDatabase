@@ -682,13 +682,10 @@ class GuiProductModify (tk.Frame):
             #
             # Price should be number and not zero. 
             #
-            if ((price.strip().isdigit()) and (int(price) != 0)):
-                #
-                # Remove space.
-                #
+            try:
+                float (price)
                 self.table.EntryTextSet(2, currentRow, price.strip())
-                
-            else:
+            except:
                 self.table.EntryObjectGet(2, currentRow).config (bg = '#FF3333')
                 priceValid = False
                 LogWarning (currentRow, 'Price invalid.')

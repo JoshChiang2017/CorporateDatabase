@@ -242,7 +242,3 @@ def LoadDatabase():
         CurrentCompany = CurrentCompany.Name.GetNextNode()
     
     return database
-    
-if __name__ == '__main__':
-    a = link.ProductList()
-    ExportProduct ('HappyCompany', a)

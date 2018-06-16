@@ -399,6 +399,14 @@ class Table (tk.Frame):
         return (self.MaxX + 1)
     def GetMaxColumn(self):
         return (self.MaxX)
+        
+    #
+    # Lock table. Transfer all entrys of table to readonly.
+    #
+    def LockTable(self):
+        for x in range (self.GetColumnNumber()):
+            for y in range (self.GetRowNumber()):
+                self.EntryObjectGet (x, y).config (state = 'readonly')
 
 #
 # GUI of add data to database
@@ -584,48 +592,51 @@ class GuiCompanyModify (tk.Frame):
 
             if save:
                 #
-                # 3.Call api save to database.
+                # 3. Save table to database
                 #
-                log = logger.CompanyHistoryLog ()
-                for y in range (self.table.GetMaxRow()):
-                    if self.table.EntryStatusGet (0, y) == 'new':
-                        node = self.TransferRowToNode(y)
-                        
-                        self.database.AddNode(node)
-                        log.SetAddFile (node)
-                        CD_FileAccess.CreateCompanyFolder (node.GetName())
-                        
-                    elif self.table.EntryStatusGet (0, y) == 'remove':
-                        node = self.TransferRowDefaultToNode(y)
-                        name = node.GetName ()
-                        
-                        self.database.RemoveNode (name)
-                        log.SetRemoveFile (node)
-                        CD_FileAccess.RemoveCompanyFolder (name)
-                        
-                    else:
-                        for x in range (self.table.GetColumnNumber()):
-                            if self.table.EntryStatusGet (x, y) == 'modify':
-                                preNode = self.TransferRowDefaultToNode(y)
-                                postNode = self.TransferRowToNode(y)
-                                preName = preNode.GetName()
-                                postName = postNode.GetName()
-                                postFolder = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + postName
-
-                                self.database.ModifyNode (preName, postNode)
-                                log.SetModifyFile (preNode, postNode)
-                                os.rename (CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + preName, postFolder)
-                                os.rename (postFolder + '/' + preName + '.txt',
-                                           postFolder + '/' + postName + '.txt')
-                                break
+                self.InternalSaveCallback()
 
                 #
                 # 4. Save database to hard drive
                 #
                 CD_FileAccess.ExportCompany(self.database)
-                log.AddLog()
                 logging.info ('Modify product file success!\n')
                 self.Exit()
+
+    def InternalSaveCallback (self):
+        log = logger.CompanyHistoryLog ()
+        for y in range (self.table.GetMaxRow()):
+            if self.table.EntryStatusGet (0, y) == 'new':
+                node = self.TransferRowToNode(y)
+                
+                self.database.AddNode(node)
+                log.SetAddFile (node)
+                CD_FileAccess.CreateCompanyFolder (node.GetName())
+                
+            elif self.table.EntryStatusGet (0, y) == 'remove':
+                node = self.TransferRowDefaultToNode(y)
+                name = node.GetName ()
+                
+                self.database.RemoveNode (name)
+                log.SetRemoveFile (node)
+                CD_FileAccess.RemoveCompanyFolder (name)
+                
+            else:
+                for x in range (self.table.GetColumnNumber()):
+                    if self.table.EntryStatusGet (x, y) == 'modify':
+                        preNode = self.TransferRowDefaultToNode(y)
+                        postNode = self.TransferRowToNode(y)
+                        preName = preNode.GetName()
+                        postName = postNode.GetName()
+                        postFolder = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + postName
+
+                        self.database.ModifyNode (preName, postNode)
+                        log.SetModifyFile (preNode, postNode)
+                        os.rename (CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + preName, postFolder)
+                        os.rename (postFolder + '/' + preName + '.txt',
+                                   postFolder + '/' + postName + '.txt')
+                        break
+        log.AddLog()
 
     #
     # Transfer specific node into class ProductNode
