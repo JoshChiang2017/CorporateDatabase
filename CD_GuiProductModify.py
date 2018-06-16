@@ -285,41 +285,8 @@ class Table (tk.Frame):
                     break
             if DataWithinRow:
                 self.AddNewRow()
-
-        else:
-            #################################
-            # Particular table feature start#
-            #################################
-
-            #
-            # Picture column
-            #
-            if self.X == 3:
-                if (self.EntryTextGet(self.X, self.Y) == 'Y') or (self.EntryTextGet(self.X, self.Y) == 'y'):
-                    if (self.EntryStatusGet(self.X, self.Y) == 'new') or self.EntryStatusGet(self.X, self.Y) == 'modify':
-                        
-                        PicPath = Dialog.askopenfilename ()
-                        if PicPath=='':
-                            self.EntryTextSet (self.X, self.Y, 'N')
-                        else:
-                            self.EntryTextSet (self.X, self.Y, '@'+PicPath)
-                    else:
-                        self.EntryTextSet (self.X, self.Y, 'Y')
-
-                elif self.EntryTextGet(self.X, self.Y) == '' or self.EntryTextGet(self.X, self.Y)[0] !='@':
-                    #
-                    # If string start with '@', it is valid.
-                    #
-                    self.EntryTextSet (self.X, self.Y, 'N')
-
-            ################################
-            # Particular table feature end #
-            ################################
             
-            #
-            # Callback of enter is similar with tab.
-            #
-            self.NextEntryCallback(None)
+        self.NextEntryCallback(None)
 
     #
     # Callback when mouse left button press.
@@ -373,6 +340,26 @@ class Table (tk.Frame):
         # If no row in table, do nothing.
         #
         if self.MaxY != -1:
+            
+            #
+            # 1. Specific process for specific column.
+            #
+            #################################
+            # Particular table feature start#
+            #################################
+
+            #
+            # Picture column
+            #
+            if self.X == 3:
+                self.ImageEntryInternal()
+
+            ################################
+            # Particular table feature end #
+            ################################
+            #
+            # 2. Check content of entry is modified or not.
+            #
             if (self.EntryStatusGet(self.X, self.Y) == 'exist') or (self.EntryStatusGet(self.X, self.Y) == 'modify'):
                 if self.EntryDefaultGet(self.X, self.Y) != self.EntryTextGet (self.X, self.Y):
                     self.EntryStatusSet (self.X, self.Y, 'modify')
@@ -384,10 +371,14 @@ class Table (tk.Frame):
             if self.EntryStatusGet(self.X, self.Y) == 'new':
                 self.EntryObjectGet(self.X, self.Y).config (bg = '#FFFFFF')
             
+            #
+            # 3. Focus at new entry
+            #
             self.Y = y
             self.X = x
             self.EntryObjectGet(self.X, self.Y).focus_set()
             self.EntryObjectGet(self.X, self.Y).select_range(0, 'end')
+            
 
     def RemoveRow (self, y):
         #
@@ -414,6 +405,9 @@ class Table (tk.Frame):
             self.IndexArray[i].insert (0, i)
             self.IndexArray[i].config (state = 'disable')
         self.FocusAtNewEntry (0, y)
+        
+    def FocusAtLast (self):
+        self.FocusAtNewEntry (self.MaxX, self.MaxY)
         
     def EntryObjectGet (self, x, y):
         return self.EntryArray[y][x][self.DefineObject]
@@ -448,6 +442,40 @@ class Table (tk.Frame):
         for x in range (self.GetColumnNumber()):
             for y in range (self.GetRowNumber()):
                 self.EntryObjectGet (x, y).config (state = 'readonly')
+
+    #################################
+    # Particular table feature start#
+    #################################
+    
+    #
+    # Do not consider which entry of table should call this function.
+    # It is control by FocusAtNewEntry()
+    #
+    def ImageEntryInternal(self):
+        if (self.EntryTextGet(self.X, self.Y) == 'Y') or (self.EntryTextGet(self.X, self.Y) == 'y'):
+            if ((self.EntryStatusGet(self.X, self.Y) == 'new') or 
+                self.EntryStatusGet(self.X, self.Y) == 'modify' or
+                ((self.EntryStatusGet(self.X, self.Y) == 'exist') and (self.EntryDefaultGet(self.X, self.Y) == 'N'))
+                ):
+                
+                PicPath = Dialog.askopenfilename ()
+                if PicPath=='':
+                    self.EntryTextSet (self.X, self.Y, 'N')
+                else:
+                    self.EntryTextSet (self.X, self.Y, '@'+PicPath)
+                    
+            else:
+                self.EntryTextSet (self.X, self.Y, 'Y')
+
+        elif self.EntryTextGet(self.X, self.Y) == '' or self.EntryTextGet(self.X, self.Y)[0] !='@':
+            #
+            # If string start with '@', it is valid.
+            #
+            self.EntryTextSet (self.X, self.Y, 'N')
+    
+    ################################
+    # Particular table feature end #
+    ################################
 
 #
 # GUI of add data to database
@@ -712,6 +740,12 @@ class GuiProductModify (tk.Frame):
             self.Exit()
     
     def ButtonSaveCallback (self):
+        #
+        # Avoid user input last data without pressing enter key.
+        # It is possible to lose last data.
+        #
+        self.table.FocusAtLast()
+        
         #
         # 1.Check data of table valid.
         #
