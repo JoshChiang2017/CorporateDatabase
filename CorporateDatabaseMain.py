@@ -9,18 +9,18 @@ import CD_GuiProductModify
 import CD_GuiCompanyModify
 import CD_FileAccess
 import CD_LinkingList
-from CD_Configuration import *
+import CD_Configuration as CONF
 
 #
 # Begin a new database.
 #
 def InitDatabase():
-    dataBaseName = GLOBAL_CONFIG_DB_FOLDER
+    dataBaseName = CONF.GLOBAL_CONFIG_DB_FOLDER
     if not os.path.isdir(dataBaseName):
         logging.info ('Create New Database.')
         os.mkdir(dataBaseName)
         
-        file = open (GLOBAL_CONFIG_DB_PATH, 'w')
+        file = open (CONF.GLOBAL_CONFIG_DB_PATH, 'w')
         file.write ('%1s' % '' + '| ' + '%-20s' % 'CompanyName' + '| ' + '%-20s' % 'CompanyCode' +'|\n')
         for i in range (50):
             file.write ('=')
@@ -43,7 +43,7 @@ def InitialCheck():
     #     Product image not found image
     #
     NecessaryFile = (
-        GLOBAL_CONFIG_DB_PATH,
+        CONF.GLOBAL_CONFIG_DB_PATH,
         'image/EntryImage.png',
         'image/ImageNotFound.png'
         )
@@ -96,6 +96,10 @@ def SwitchToSearch (root, database):
     else:
         messagebox.showinfo('INFO', 'There are no data in database.')
 
+#def FontConfig (font):
+#    global CONF.GLOBAL_CONFIG_FONT
+#    CONF.GLOBAL_CONFIG_FONT = font
+
 #
 # GUI of application entry menu.
 #
@@ -147,15 +151,17 @@ class EntryMenu (tk.Frame):
         #
         self.FrameMainTop.rowconfigure(0, weight = 1)
         self.FrameMainTop.columnconfigure(0, weight = 1)
-        self.FrameMainBottom.rowconfigure(0, weight = 1)
-        self.FrameMainBottom.columnconfigure(0, weight = 1)
-        self.FrameMainBottom.columnconfigure(1, weight = 1)
-        self.FrameMainBottom.columnconfigure(2, weight = 1)
-        self.FrameMainBottom.columnconfigure(3, weight = 1)
+        
+        for y in range(2):
+            self.FrameMainBottom.rowconfigure(y, weight = 1)
+        for x in range(3):
+            self.FrameMainBottom.columnconfigure(x, weight = 1)
         
         #
         # Button
         #
+        self.buttonList = []
+        
         self.ButtonModifyCompany = tk.Button (
             self.FrameMainBottom,
             text = '修改(公司)',
@@ -164,6 +170,8 @@ class EntryMenu (tk.Frame):
             width=1,
             command = lambda: SwitchToModifyCompany (parent, Database)
             )
+        self.buttonList.append (self.ButtonModifyCompany)
+        
         self.ButtonModifyProduct = tk.Button (
             self.FrameMainBottom,
             text = '修改(產品)',
@@ -172,6 +180,7 @@ class EntryMenu (tk.Frame):
             width=1,
             command = lambda: SwitchToModifyProduct (parent, Database)
             )
+        self.buttonList.append (self.ButtonModifyProduct)
         
         self.ButtonSearch = tk.Button (
             self.FrameMainBottom,
@@ -181,6 +190,17 @@ class EntryMenu (tk.Frame):
             width=1,
             command = lambda: SwitchToSearch (parent, Database)
             )
+        self.buttonList.append (self.ButtonSearch)
+        
+        self.ButtonFontConfig = tk.Button (
+            self.FrameMainBottom,
+            text = 'Assistance',
+            font = ('標楷體', 14),
+            bg = '#6899CA',
+            width=1,
+            command=lambda: self.FontConfig ()
+            )
+        self.buttonList.append (self.ButtonFontConfig)
         
         self.ButtonExit = tk.Button (
             self.FrameMainBottom,
@@ -189,12 +209,14 @@ class EntryMenu (tk.Frame):
             bg = '#6899CA',
             width=1,
             command=lambda: parent.destroy ()
-            )    
+            )
+        self.buttonList.append (self.ButtonExit)
 
         self.ButtonModifyCompany.grid (row=0, column=0, sticky='news', padx=1, pady=1)
-        self.ButtonModifyProduct.grid (row=0, column=1, sticky='news', padx=1, pady=1)
-        self.ButtonSearch.grid (row=0, column=2, sticky='news', padx=1, pady=1)
-        self.ButtonExit.grid (row=0, column=3, sticky='news', padx=1, pady=1)
+        self.ButtonModifyProduct.grid (row=1, column=0, sticky='news', padx=1, pady=1)
+        self.ButtonSearch.grid        (row=0, column=1, sticky='news', padx=1, pady=1)
+        self.ButtonFontConfig.grid    (row=0, column=2, sticky='news', padx=1, pady=1)
+        self.ButtonExit.grid          (row=1, column=2, sticky='news', padx=1, pady=1)
         self.update()
 
         #
@@ -214,11 +236,20 @@ class EntryMenu (tk.Frame):
             image = self.EntryPhotoTkImage
             )
         self.LabelEntryImage.grid (row=0, column=0, sticky='news', padx=5, pady=5)
+        
+    def FontConfig (self):
+        if CONF.GLOBAL_CONFIG_FONT == ('標楷體', 12):
+            CONF.GLOBAL_CONFIG_FONT = ('標楷體', 20)
+        else:
+            CONF.GLOBAL_CONFIG_FONT = ('標楷體', 12)
+        
+        for button in self.buttonList:
+            button.config (font = CONF.GLOBAL_CONFIG_FONT)
 
 class LoadingImage(object):
     def __init__(self, parent):
-        self.frameNumber = GLOBAL_CONFIG_LOADING_PIC_FRAMES
-        self.frames = [tk.PhotoImage(file=GLOBAL_CONFIG_LOADING_PIC, format = 'gif -index %i' %(i)) for i in range(self.frameNumber)]
+        self.frameNumber = CONF.GLOBAL_CONFIG_LOADING_PIC_FRAMES
+        self.frames = [tk.PhotoImage(file=CONF.GLOBAL_CONFIG_LOADING_PIC, format = 'gif -index %i' %(i)) for i in range(self.frameNumber)]
         self.loadingImageEvent = None
         
         self.loadingLabel = tk.Label (parent)

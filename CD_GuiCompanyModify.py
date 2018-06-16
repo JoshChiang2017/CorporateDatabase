@@ -7,7 +7,7 @@ import CD_LinkingList as link
 import CD_FileAccess
 import CD_LogHistotry as logger
 from tkinter import messagebox
-from CD_Configuration import *
+import CD_Configuration as CONF
 
 #
 # @Title                     List of string display on each top of column.
@@ -87,7 +87,7 @@ class Table (tk.Frame):
                 borderwidth = 1,
                 relief=tk.GROOVE,
                 text = 'NO.',
-                font = GLOBAL_CONFIG_FONT,
+                font = CONF.GLOBAL_CONFIG_FONT,
                 width = 5
                 )
             entry.pack(side='left', fill='both')
@@ -102,7 +102,7 @@ class Table (tk.Frame):
                 state = 'disabled',
                 justify = 'center',
                 textvariable = TitleString,
-                font = GLOBAL_CONFIG_FONT,
+                font = CONF.GLOBAL_CONFIG_FONT,
                 disabledforeground = '#000000'
                 )
             entry.pack(side='left', fill='both', expand=True)
@@ -174,7 +174,7 @@ class Table (tk.Frame):
                 state = 'disabled',
                 justify = 'center',
                 textvariable = TitleString,
-                font = GLOBAL_CONFIG_FONT,
+                font = CONF.GLOBAL_CONFIG_FONT,
                 disabledforeground = '#000000',
                 width = 5
                 )
@@ -190,7 +190,7 @@ class Table (tk.Frame):
                 borderwidth = 1,
                 relief=tk.GROOVE,
                 textvariable = TitleString,
-                font = GLOBAL_CONFIG_FONT,
+                font = CONF.GLOBAL_CONFIG_FONT,
                 bg = Background
                 )
             entry.pack(side='left', fill='x', expand=True)
@@ -431,7 +431,7 @@ class GuiCompanyModify (tk.Frame):
             self.controlFrame, 
             text = '儲存(S):',
             bg = '#AA88AA',
-            font = GLOBAL_CONFIG_FONT,
+            font = CONF.GLOBAL_CONFIG_FONT,
             width=20,
             command = self.ButtonSaveCallback
             )
@@ -441,7 +441,7 @@ class GuiCompanyModify (tk.Frame):
             self.controlFrame, 
             text = '放棄變更(Q):',
             bg = '#AA88AA',
-            font = GLOBAL_CONFIG_FONT,
+            font = CONF.GLOBAL_CONFIG_FONT,
             width=20,
             command = self.ButtonBackCallback
             )
@@ -610,11 +610,11 @@ class GuiCompanyModify (tk.Frame):
                                 postNode = self.TransferRowToNode(y)
                                 preName = preNode.GetName()
                                 postName = postNode.GetName()
-                                postFolder = GLOBAL_CONFIG_DB_FOLDER + '/' + postName
+                                postFolder = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + postName
 
                                 self.database.ModifyNode (preName, postNode)
                                 log.SetModifyFile (preNode, postNode)
-                                os.rename (GLOBAL_CONFIG_DB_FOLDER + '/' + preName, postFolder)
+                                os.rename (CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + preName, postFolder)
                                 os.rename (postFolder + '/' + preName + '.txt',
                                            postFolder + '/' + postName + '.txt')
                                 break

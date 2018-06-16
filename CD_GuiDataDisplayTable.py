@@ -3,7 +3,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from PIL import Image,ImageTk
 import logging
-from CD_Configuration import *
+import CD_Configuration as CONF
 
 #
 # GUI of data display table
@@ -27,7 +27,11 @@ class DataTable (tk.Frame):
                 )
         self.tree.pack(side='left', fill='both', expand=True)
 
-        style = ttk.Style().configure("Treeview", font=GLOBAL_CONFIG_FONT)
+        style = ttk.Style().configure(
+            "Treeview",
+            font=CONF.GLOBAL_CONFIG_FONT,
+            rowheight = CONF.GLOBAL_CONFIG_FONT[1] * 2  # set rowheight as double of font size
+            )
         
         self.tree.column ('CompanyName', anchor = 'w', width = 100)
         self.tree.column ('ProductName', anchor = 'w', width = 100)
@@ -139,7 +143,7 @@ class DataDisplayMenu (tk.Frame):
             self.SearchFrame,
             text = '回主畫面(Q)',
             bg = '#6899CA',
-            font = GLOBAL_CONFIG_FONT,
+            font = CONF.GLOBAL_CONFIG_FONT,
             command = lambda: self.Exit ()
             )
         self.ButtonBackToMain.grid()

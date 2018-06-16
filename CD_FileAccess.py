@@ -4,10 +4,10 @@ import logging
 import threading
 from PIL import Image,ImageTk
 import CD_LinkingList as link
-from CD_Configuration import *
+import CD_Configuration as CONF
 
 def CreateCompanyFolder (companyName):
-    folder = GLOBAL_CONFIG_DB_FOLDER + '/' + companyName
+    folder = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + companyName
     fileName = folder + '/' + companyName + '.txt'
     
     os.mkdir (folder)
@@ -30,7 +30,7 @@ def CreateCompanyFolder (companyName):
     file.close()
     
 def RemoveCompanyFolder (companyName):
-    folder = GLOBAL_CONFIG_DB_FOLDER + '/' + companyName
+    folder = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + companyName
     shutil.rmtree (folder)
     
 #
@@ -51,11 +51,11 @@ def RemoveCompanyFolder (companyName):
 #
 def ProductImageModify (company, oriName=None, modName=None, picPath=None):
     if oriName != None:
-        oriFileName = GLOBAL_CONFIG_DB_FOLDER + '/' + company + '/' + oriName + '.png'
-        oriFileSimpleName = GLOBAL_CONFIG_DB_FOLDER + '/' + company + '/' + oriName + '_Simple.png'
+        oriFileName = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + company + '/' + oriName + '.png'
+        oriFileSimpleName = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + company + '/' + oriName + '_Simple.png'
     if modName != None:
-        modFileName = GLOBAL_CONFIG_DB_FOLDER + '/' + company + '/' + modName + '.png'
-        modFileSimpleName = GLOBAL_CONFIG_DB_FOLDER + '/' + company + '/' + modName + '_Simple.png'
+        modFileName = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + company + '/' + modName + '.png'
+        modFileSimpleName = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + company + '/' + modName + '_Simple.png'
     
     #
     # Modify picture name.
@@ -98,7 +98,7 @@ def ProductImageModify (company, oriName=None, modName=None, picPath=None):
 def ExportProduct (companyName, productList):
     assert isinstance(productList, link.ProductList)
     
-    file = open (GLOBAL_CONFIG_DB_FOLDER + '/' + companyName + '/' + companyName + '.txt', 'w')
+    file = open (CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + companyName + '/' + companyName + '.txt', 'w')
         
     #
     # Header of product list file.
@@ -135,7 +135,7 @@ def ExportProduct (companyName, productList):
 def ExportCompany (companyList):
     assert isinstance(companyList, link.CompanyList)
     
-    file = open (GLOBAL_CONFIG_DB_PATH, 'w')
+    file = open (CONF.GLOBAL_CONFIG_DB_PATH, 'w')
         
     #
     # Header of product list file.
@@ -174,7 +174,7 @@ def LoadDatabase():
     # First, load all company list.
     #
     try:
-        rootFile = open (GLOBAL_CONFIG_DB_PATH, 'r')
+        rootFile = open (CONF.GLOBAL_CONFIG_DB_PATH, 'r')
     except FileNotFoundError:
         logging.warning ('WARNING! No database exist!!!!!')
         raise
@@ -200,7 +200,7 @@ def LoadDatabase():
     CurrentCompany = database.Header.Name.GetNextNode()
 
     while CurrentCompany != None:
-        CompanyPath = GLOBAL_CONFIG_DB_FOLDER + '/' + CurrentCompany.Name.GetData() + '/'
+        CompanyPath = CONF.GLOBAL_CONFIG_DB_FOLDER + '/' + CurrentCompany.Name.GetData() + '/'
         CompanyProductFile = CompanyPath + CurrentCompany.Name.GetData() + '.txt'
 
         if not os.path.exists(CompanyProductFile):

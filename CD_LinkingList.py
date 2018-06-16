@@ -1,5 +1,5 @@
 import logging
-from CD_Configuration import *
+import CD_Configuration as CONF
 
 ## Linking list
 #

@@ -2,20 +2,20 @@ import os
 import time
 import logging
 import CD_LinkingList as link
-from CD_Configuration import *
+import CD_Configuration as CONF
 
 class HistoryLog(object):
     def __init__(self, company):
         assert isinstance (company, str)
         
-        self.fileName = GLOBAL_CONFIG_LOG_PATH
+        self.fileName = CONF.GLOBAL_CONFIG_LOG_PATH
         self.company = company
         self.addFile = '\n'
         self.removeFile = '\n'
         self.modifyFile = '\n'
         
-        if not os.path.isdir(GLOBAL_CONFIG_DB_FOLDER):
-            os.mkdir(GLOBAL_CONFIG_DB_FOLDER)
+        if not os.path.isdir(CONF.GLOBAL_CONFIG_DB_FOLDER):
+            os.mkdir(CONF.GLOBAL_CONFIG_DB_FOLDER)
 
         if not os.path.exists (self.fileName):
             logging.info ('New %s create.' %self.fileName)
@@ -73,14 +73,14 @@ class HistoryLog(object):
 class CompanyHistoryLog(object):
     def __init__(self):
         
-        self.fileName = GLOBAL_CONFIG_LOG_PATH
-        self.company = GLOBAL_CONFIG_DB_FOLDER
+        self.fileName = CONF.GLOBAL_CONFIG_LOG_PATH
+        self.company = CONF.GLOBAL_CONFIG_DB_FOLDER
         self.addFile = '\n'
         self.removeFile = '\n'
         self.modifyFile = '\n'
         
-        if not os.path.isdir(GLOBAL_CONFIG_DB_FOLDER):
-            os.mkdir(GLOBAL_CONFIG_DB_FOLDER)
+        if not os.path.isdir(CONF.GLOBAL_CONFIG_DB_FOLDER):
+            os.mkdir(CONF.GLOBAL_CONFIG_DB_FOLDER)
 
         if not os.path.exists (self.fileName):
             logging.info ('New %s create.' %self.fileName)
