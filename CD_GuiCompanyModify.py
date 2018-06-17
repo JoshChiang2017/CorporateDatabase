@@ -201,15 +201,6 @@ class Table (tk.Frame):
             entry.bind ('<Button-1>', self.LeftMouseCallback)
 
         self.EntryArray.append (ItemX)
-
-        #
-        # Move and focus at last row.
-        #
-        self.X = 0
-        self.Y = self.MaxY
-        self.EntryObjectGet(self.X, self.Y).focus_set()
-        self.EntryObjectGet(self.X, self.Y).select_range(0, 'end')
-        self.DataCanvas.update_idletasks()
         self.DataCanvas.yview_moveto (1)
 
     #
@@ -266,20 +257,7 @@ class Table (tk.Frame):
             if DataWithinRow:
                 self.AddNewRow()
 
-        else:
-            #################################
-            # Particular table feature start#
-            #################################
-
-
-            ################################
-            # Particular table feature end #
-            ################################
-            
-            #
-            # Callback of enter is similar with tab.
-            #
-            self.NextEntryCallback(None)
+        self.NextEntryCallback(None)
 
     #
     # Callback when mouse left button press.
@@ -474,7 +452,13 @@ class GuiCompanyModify (tk.Frame):
             periCompany = periCompany.GetNext()
             self.table.AddNewRow (data)
 
+        #
+        # Add empty data row at last.
+        # And focus at last row first column.
+        #
         self.table.AddNewRow()
+        self.table.FocusAtNewEntry (0, self.table.GetMaxRow())
+
 
     def DataValidCheck(self):
         logging.info ('DataValidCheck()')

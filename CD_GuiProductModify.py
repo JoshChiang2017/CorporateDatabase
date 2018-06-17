@@ -221,15 +221,6 @@ class Table (tk.Frame):
             entry.bind ('<Button-1>', self.LeftMouseCallback)
 
         self.EntryArray.append (ItemX)
-
-        #
-        # Move and focus at last row.
-        #
-        self.X = 0
-        self.Y = self.MaxY
-        self.EntryObjectGet(self.X, self.Y).focus_set()
-        self.EntryObjectGet(self.X, self.Y).select_range(0, 'end')
-        self.DataCanvas.update_idletasks()
         self.DataCanvas.yview_moveto (1)
 
     #
@@ -652,7 +643,12 @@ class GuiProductModify (tk.Frame):
             CurrentProduct = CurrentProduct.Name.GetNextNode()
             self.table.AddNewRow(Data)
 
+        #
+        # Add empty data row at last.
+        # And focus at last row first column.
+        #
         self.table.AddNewRow()
+        self.table.FocusAtNewEntry (0, self.table.GetMaxRow())
 
     def DataValidCheck(self):
         logging.info ('DataValidCheck()')
