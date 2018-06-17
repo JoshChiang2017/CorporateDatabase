@@ -433,6 +433,15 @@ class Table (tk.Frame):
         for x in range (self.GetColumnNumber()):
             for y in range (self.GetRowNumber()):
                 self.EntryObjectGet (x, y).config (state = 'readonly')
+                
+    #
+    # Remove empty and cr/lf before and after the text of each entry.
+    #
+    def RemoveEmpty(self):
+        for x in range (self.GetColumnNumber()):
+            for y in range (self.GetRowNumber()):
+                newText = self.EntryTextGet (x, y).strip()
+                self.EntryTextSet (x, y, newText)
 
     #################################
     # Particular table feature start#
@@ -781,7 +790,8 @@ class GuiProductModify (tk.Frame):
                 #
                 # 3.Save table to database.
                 #
-                logging.info ('Start save table to database...')
+                logging.info ('Start save table to database')
+                self.table.RemoveEmpty()
                 self.table.LockTable()
                 
                 loadingImage = CorporateDatabaseMain.LoadingImage(self.root)
