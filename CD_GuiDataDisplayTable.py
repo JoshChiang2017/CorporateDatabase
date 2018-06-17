@@ -93,7 +93,7 @@ class DataDisplayMenu (tk.Frame):
                 #
                 # Add price column space to make separate more obvious with later column.
                 #
-                self.DisplayTable.tree.insert('', -1,
+                self.DisplayTable.tree.insert('', 10000,
                     values=(
                         CurrentCompany.Name.GetData(),
                         CurrentProduct.Name.GetData(),
